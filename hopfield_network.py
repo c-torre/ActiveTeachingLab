@@ -35,8 +35,8 @@ class Hopfield:
         self.noise_variance = noise_variance
         self.noise_modulation = noise_modulation
         self.learning_rate = learning_rate
-        assert self.learning_rate <= 1
         self.forgetting_rate = forgetting_rate
+        assert (self.learning_rate and self.forgetting_rate) <= 1
 
         self.weights = np.zeros((self.num_neurons, self.num_neurons))
         self.next_theoretical_weights = np.zeros_like(self.weights)
