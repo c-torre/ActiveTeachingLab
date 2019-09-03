@@ -56,10 +56,10 @@ def plot_mean_weights(network):
     plt.show()
 
 
-def plot_p_recall(network):
+def plot_pattern_similarity(network):
 
     fig, ax = plt.subplots()
-    im = ax.plot(network.p_recall_history)
+    ax.plot(network.pattern_similarity_history)
 
     ax.set_title("Probability of recall")
     ax.set_xlabel("Iteration")

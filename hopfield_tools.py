@@ -3,9 +3,11 @@ import numpy as np
 
 def binarize_item(item, num_neurons):
     """
-    Item number to binary and append zeros according to hopfield_network size.
-    :param item: int item index
-    :return: bin_item binary vector
+    Item number to binary and append zeros according to network size.
+
+    :param item: int, item index
+    :param num_neurons: int, network number of neurons
+    :return: array_like, dtype=int (bin)
     """
     question_array = np.array([item])
     bin_item = ((question_array[:, None]
@@ -14,15 +16,17 @@ def binarize_item(item, num_neurons):
                                             - bin_item.size))
 
     print("Item given as pattern:", bin_item)
+
     return bin_item
 
 
 def distort_pattern(pattern, proportion):
     """
-    Inverts the array in random positions proportional to array size.
-    :param pattern: array-like binary vector to distort
-    :param proportion: float 0 to 1, 1 being full array inversion
-    :return pattern: array-like binary vector with inverted elements
+    Inverts array values in random positions proportionally to a parameter.
+
+    :param pattern: array_like, binary vector to distort
+    :param proportion: float, 0 to 1, 1 being full array inversion
+    :return pattern: array_like, dtype=int (bin)
     """
 
     num_inversions = int(pattern.size * proportion)
@@ -41,8 +45,27 @@ def heaviside_activation(x):
 
 
 def gaussian_noise(variance):
-    # Amplitude-modulated Gaussian noise
+    """
+    Amplitude-modulated Gaussian noise.
+
+    :param variance: float
+    :return: int, noise_value
+    """
     return np.random.normal(loc=0, scale=variance**0.5) * 0.05
+
+
+def compute_pattern_similarity(pattern_0, pattern_1):
+    """
+    Returns the squared proportion of bits that match in value and position
+    in both given patterns with respect to the total number of neurons.
+
+    :param pattern_0: array_like, dtype=bool
+    :param pattern_1: array_like, dtype=bool
+    :return: float, similarity_score
+    """
+    assert pattern_0.size == pattern_1.size
+    match = np.sum(pattern_0 == pattern_1)
+    return (match / pattern_0.size)**2
 
 
 # def present_pattern(self, item):

@@ -13,8 +13,11 @@ class Hopfield:
     """
     Pattern consists of multiple binary vectors representing both the item and
     its different characteristics that can be recalled.
-    :param learning_rate: float proportion of the theoretical weights learn per
-        time step
+
+    :param learning_rate: float, proportion of the theoretical weights learn
+        per time step
+    :param forgetting_rate: float, proportion of the theoretical weights
+        forgotten per time step
     """
 
     version = 1.0
@@ -43,7 +46,7 @@ class Hopfield:
         self.next_weights = np.zeros_like(self.weights)
         self.weights_mean = []
 
-        self.p_recall_history = []
+        self.pattern_similarity_history = []
 
         self.active_fraction = f
 
@@ -215,6 +218,33 @@ class Hopfield:
         print(f"\nFinished as attractor {attractor} after {tot} "
               f"node value updates.\n")
 
+    def update_pattern_similarity(self, item=None, n_pattern=None):
+        """
+        Compute the last pattern similarity and append it to the network
+        history.
+
+        The problem pattern is either computed from binarizing the given int
+        or taken from the stored p patterns of the network.
+
+        :param item: int, item id
+        :param n_pattern: array_like
+        """
+        assert (item is not None and n_pattern is None) \
+            or (n_pattern is not None and item is None)
+        if item is not None:
+            bin_item = hopfield_tools.binarize_item(item, self.num_neurons)
+        elif n_pattern is not None:
+            bin_item = self.patterns[n_pattern]
+        else:
+            raise Exception("Item or n_pattern should be given")
+
+        similarity = hopfield_tools.compute_pattern_similarity(
+            self.currents[-1],
+            bin_item
+        )
+
+        self.pattern_similarity_history.append(similarity)
+
     def simulate(self):
         # assert self.patterns
         # assert self.num_neurons == self.patterns[0].size
@@ -229,32 +259,9 @@ class Hopfield:
     # ACTIVE TEACHING METHODS #
     ###########################
 
-    def p_recall(self, item=None, n_pattern=None, time=None, verbose=False):
-        """
-        After choosing, compare the chosen pattern with the correct pattern
-        to retrieve the probability of recall.
-        """
-        assert (item is not None and n_pattern is None) \
-               or (n_pattern is not None and item is None)
-        if item is not None:
-            bin_item = hopfield_tools.binarize_item(item, self.num_neurons)
-        elif n_pattern is not None:
-            bin_item = self.patterns[n_pattern]
-        else:
-            raise Exception
-
-        # self.currents = np.vstack((self.currents, bin_item))
-        # self.update_all_neurons()
-
-        match = np.sum(self.currents[-1] == bin_item)
-        p_r = match / self.num_neurons
-        self.p_recall_history.append(p_r)
-
-        if verbose:
-            print("\nCurrent after item presentation and one update:\n",
-                  self.currents[-1])
-            print("\nProbability of recall of the item: ", p_r)
-
+    def p_recall(self, item, time=None):
+        """Expected return from specific learner: p_r"""
+        p_r = np.random.random() * self.p / self.p  # making PEP8 happy
         return p_r
 
     def decide(self, item, possible_replies, time=None, time_index=None):
@@ -277,22 +284,18 @@ class Hopfield:
         The normalized difference of means calculated at every time step gives
         a logarithmic emergent behavior as the weights get closer to the
         theoretical ones.
+
         :param item:
         :param time:
-        :return:
         """
 
         self.next_weights = (self.next_theoretical_weights - self.weights) \
             * self.learning_rate
-        # print(self.next_weights)
 
         self.update_weights(self.next_weights)
 
         self.weights_mean.append(-np.mean(self.next_theoretical_weights)
                                  + np.mean(self.weights))
-
-        # plot.attractor_networks.plot_weights(self)
-        # pass
 
     def unlearn(self):
         pass
@@ -336,12 +339,12 @@ class Hopfield:
             self.update_all_neurons()
         # self.update_all_neurons()
 
-        self.p_recall(n_pattern=recalled_pattern)
+        self.update_pattern_similarity(n_pattern=recalled_pattern)
 
         for i in range(iterations):
             self.learn()
             self.update_all_neurons()
-            self.p_recall(n_pattern=recalled_pattern)
+            self.update_pattern_similarity(n_pattern=recalled_pattern)
 
 
 def main(force=False):
@@ -378,26 +381,26 @@ def main(force=False):
         # hopfield_network.calculate_next_weights(hopfield_network.patterns[0])
         # hopfield_network.update_all_neurons()
         #
-        # hopfield_network.p_recall(n_pattern=0)
+        # hopfield_network.update_pattern_similarity(n_pattern=0)
         #
         # for i in range(20):
         #     hopfield_network.learn()
         #     hopfield_network.update_all_neurons_learning()
-        #     hopfield_network.p_recall(n_pattern=0)
+        #     hopfield_network.update_pattern_similarity(n_pattern=0)
 
         network.calculate_next_weights(network.patterns[0])
         network.update_weights(network.next_theoretical_weights)
         network.update_all_neurons()
         plot_tools.plot_weights(network)
         network.calculate_next_weights(network.patterns[1])
-        network.p_recall(n_pattern=1)
+        network.update_pattern_similarity(n_pattern=1)
 
         print(network.next_theoretical_weights)
 
-        for i in range(1750):
+        for i in range(175):
             network.learn()
             network.update_all_neurons_learning()
-            network.p_recall(n_pattern=1)
+            network.update_pattern_similarity(n_pattern=1)
 
         plot_tools.plot_weights(network)
 
@@ -422,7 +425,7 @@ def main(force=False):
 
     plot_tools.plot_mean_weights(network)
     plot_tools.plot_energy(network)
-    plot_tools.plot_p_recall(network)
+    plot_tools.plot_pattern_similarity(network)
     plot_tools.plot_currents(network)
     # plot_tools.plot_weights(hopfield_network)
 
