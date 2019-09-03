@@ -358,7 +358,7 @@ def main(force=False):
         np.random.seed(123)
 
         network = Hopfield(
-            num_neurons=80,
+            num_neurons=20,
             f=0.55,
             p=2,
             first_p=0,
@@ -389,18 +389,18 @@ def main(force=False):
         #     hopfield_network.update_pattern_similarity(n_pattern=0)
 
         network.calculate_next_weights(network.patterns[0])
-        network.update_weights(network.next_theoretical_weights)
-        network.update_all_neurons()
-        plot_tools.plot_weights(network)
-        network.calculate_next_weights(network.patterns[1])
-        network.update_pattern_similarity(n_pattern=1)
+        # network.update_weights(network.next_theoretical_weights)
+        # network.update_all_neurons()
+        # plot_tools.plot_weights(network)
+        # network.calculate_next_weights(network.patterns[1])
+        network.update_pattern_similarity(n_pattern=0)
 
         print(network.next_theoretical_weights)
 
-        for i in range(175):
+        for i in range(17):
             network.learn()
             network.update_all_neurons_learning()
-            network.update_pattern_similarity(n_pattern=1)
+            network.update_pattern_similarity(n_pattern=0)
 
         plot_tools.plot_weights(network)
 
@@ -427,10 +427,8 @@ def main(force=False):
     plot_tools.plot_energy(network)
     plot_tools.plot_pattern_similarity(network)
     plot_tools.plot_currents(network)
-    # plot_tools.plot_weights(hopfield_network)
+    plot_tools.plot_weights(network)
 
 
 if __name__ == '__main__':
     main(force=True)
-
-# TODO save a theoretical weights history; can also be used for unlearn

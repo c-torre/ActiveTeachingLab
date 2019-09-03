@@ -9,7 +9,7 @@ def plot_currents(network):
     data = network.currents
 
     fig, ax = plt.subplots()
-    im = ax.imshow(data)
+    ax.imshow(data)
     ax.set_aspect("auto")
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     ax.yaxis.set_major_locator(MaxNLocator(integer=True))
@@ -61,9 +61,9 @@ def plot_pattern_similarity(network):
     fig, ax = plt.subplots()
     ax.plot(network.pattern_similarity_history)
 
-    ax.set_title("Probability of recall")
+    ax.set_title("Pattern similarity")
     ax.set_xlabel("Iteration")
-    ax.set_ylabel("Pattern match")
+    ax.set_ylabel("Pattern match$^2$")
     ax.set_ylim((-0.1, 1.1))
 
     plt.show()
@@ -74,7 +74,7 @@ def plot_energy(network):
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     x = np.arange(0, network.num_neurons, 1)
-    y = np.arange(0, network.num_neurons, 1)
+    y = x
     x, y = np.meshgrid(x, y)
     z = np.copy(network.weights)
 
@@ -82,8 +82,7 @@ def plot_energy(network):
         for j in range(network.num_neurons):
             z[i, j] *= network.currents[-1, j]
 
-    surf = ax.plot_surface(x, y, z, alpha=0.9, cmap="viridis",
-                           antialiased=True)
+    ax.plot_surface(x, y, z, alpha=0.9, cmap="viridis", antialiased=True)
 
     ax.set_title("Energy landscape")
     ax.set_xlabel("Neuron $i$")
