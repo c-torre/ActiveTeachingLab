@@ -85,8 +85,8 @@ def plot_energy(network):
     ax.plot_surface(x, y, z, alpha=0.9, cmap="viridis", antialiased=True)
 
     ax.set_title("Energy landscape")
-    ax.set_xlabel("Neuron $i$")
-    ax.set_ylabel("Neuron $j$")
+    ax.set_xlabel("Neuron $_i$")
+    ax.set_ylabel("Neuron $_j$")
     ax.set_zlabel("Energy")
 
     plt.show()
