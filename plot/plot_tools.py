@@ -58,6 +58,32 @@ def theoretical_weights(network, index):
     plt.show()
 
 
+def theoretical_weights_point_change(network):
+    assert len(network.theoretical_weights_history) > 0
+
+    changes = []
+
+    for i in range(len(network.theoretical_weights_history)):
+        if i+1 < len(network.theoretical_weights_history-1):
+            changes.append(np.sum((network.theoretical_weights_history[i+1],
+                           -network.theoretical_weights_history[i])))
+        else:
+            break
+
+    fig, ax = plt.subplots()
+
+    neurons_noise = network.noise
+
+    for matrix in
+    for n_neuron in neurons_noise:
+        ax.plot(n_neuron, linewidth=0.5, alpha=0.9)
+
+    ax.set_xlabel("Iterations")
+    ax.set_ylabel("Noise")
+
+    plt.show()
+
+
 def mean_weights(network):
 
     fig, ax = plt.subplots()
@@ -110,15 +136,12 @@ def noise(network):
 
     fig, ax = plt.subplots()
 
-    n_iteration = network.noise.shape[1]
+    neurons_noise = network.noise
 
-    x = np.arange(n_iteration, dtype=float)
-    ys = network.noise
+    for n_neuron in neurons_noise:
+        ax.plot(n_neuron, linewidth=0.5, alpha=0.9)
 
-    for y in ys:
-        ax.plot(x, y, linewidth=0.5, alpha=0.9)
-
-    ax.set_xlabel("Time (cycles)")
+    ax.set_xlabel("Iterations")
     ax.set_ylabel("Noise")
 
     plt.show()

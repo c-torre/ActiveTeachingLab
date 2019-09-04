@@ -442,14 +442,14 @@ def main(force=False):
         print("Loading from pickle file...")
         network = pickle.load(open(bkp_file, "rb"))
 
-    plot.mean_weights(network)
-    plot.energy(network)
-    plot.pattern_similarity(network)
-    plot.currents(network)
-    plot.weights(network)
+    # plot.mean_weights(network)
+    # plot.energy(network)
+    # plot.pattern_similarity(network)
+    # plot.currents(network)
+    # plot.weights(network)
     plot.noise(network)
-    for i in range(len(network.theoretical_weights_history)):
-        plot.theoretical_weights(network, i)
+    # for i in range(len(network.theoretical_weights_history)):
+    #     plot.theoretical_weights(network, i)
 
 
 if __name__ == '__main__':
