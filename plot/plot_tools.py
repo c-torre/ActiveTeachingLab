@@ -4,7 +4,7 @@ from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.mplot3d import Axes3D
 
 
-def plot_currents(network):
+def currents(network):
 
     data = network.currents
 
@@ -25,7 +25,7 @@ def plot_currents(network):
     plt.show()
 
 
-def plot_weights(network):
+def weights(network):
 
     fig, ax = plt.subplots()
     im = ax.contourf(network.weights)
@@ -41,22 +41,36 @@ def plot_weights(network):
     plt.show()
 
 
-def plot_mean_weights(network):
+def theoretical_weights(network, index):
+    assert index < len(network.theoretical_weights_history)
 
     fig, ax = plt.subplots()
-    im = ax.plot(network.weights_mean)
-    # ax.set_aspect("auto")
+    im = ax.contourf(network.theoretical_weights_history[index])
+    ax.set_aspect("auto")
+
+    ax.set_title(f"Theoretical weights (iter={index})")
+    ax.set_xlabel("Neuron $i$")
+    ax.set_ylabel("Neuron $j$")
+
+    plt.tight_layout()
+
+    fig.colorbar(im, ax=ax)
+    plt.show()
+
+
+def mean_weights(network):
+
+    fig, ax = plt.subplots()
+    ax.plot(network.weights_mean)
 
     ax.set_title("Weights learning rule")
     ax.set_xlabel("Iteration")
     ax.set_ylabel("Difference of means")
 
-    # plt.tight_layout()
-
     plt.show()
 
 
-def plot_pattern_similarity(network):
+def pattern_similarity(network):
 
     fig, ax = plt.subplots()
     ax.plot(network.pattern_similarity_history)
@@ -69,7 +83,7 @@ def plot_pattern_similarity(network):
     plt.show()
 
 
-def plot_energy(network):
+def energy(network):
 
     fig = plt.figure()
     ax = fig.gca(projection='3d')
@@ -92,17 +106,17 @@ def plot_energy(network):
     plt.show()
 
 
-def plot_noise(network):
+def noise(network):
 
     fig, ax = plt.subplots()
 
-    n_iteration = network.noise_values.shape[1]
+    n_iteration = network.noise.shape[1]
 
-    x = np.arange(n_iteration, dtype=float) * dt
-    ys = noise_values
+    x = np.arange(n_iteration, dtype=float)
+    ys = network.noise
 
     for y in ys:
-        ax.plot(x, y, linewidth=0.5, alpha=0.2)
+        ax.plot(x, y, linewidth=0.5, alpha=0.9)
 
     ax.set_xlabel("Time (cycles)")
     ax.set_ylabel("Noise")

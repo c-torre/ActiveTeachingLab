@@ -20,7 +20,7 @@ def plot_phi(phi_values, dt=1.):
     ax.plot(x, y)
     ax.set_title("Inhibitory oscillations")
     ax.set_xlabel("Time (cycles)")
-    ax.set_ylabel("$\phi$")
+    ax.set_ylabel("$\\phi$")
 
     plt.savefig(os.path.join(FIG_FOLDER, 'phi.pdf'))
 

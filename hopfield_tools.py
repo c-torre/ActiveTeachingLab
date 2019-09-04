@@ -58,6 +58,16 @@ def compute_pattern_similarity(pattern_0, pattern_1):
     return (match / pattern_0.size)**2
 
 
+def modulated_gaussian_noise(variance, multiplier):
+    """
+    Amplitude-modulated Gaussian noise.
+
+    :return: int, noise_value
+    """
+    return np.random.normal(loc=0, scale=variance ** 0.5)\
+        * multiplier
+
+
 # def present_pattern(self, item):
 #     kanji = item["kanji"]
 #     meaning = item["meaning"]

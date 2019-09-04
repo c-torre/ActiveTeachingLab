@@ -6,7 +6,7 @@ import numpy as np
 from tqdm import tqdm
 
 import hopfield_tools
-import plot.plot_tools as plot_tools
+import plot.plot_tools as plot
 
 
 class Hopfield:
@@ -32,14 +32,18 @@ class Hopfield:
         super().__init__(**kwargs)
 
         self.num_iterations = num_iterations
+        self.n_iteration = 0
+
         self.num_neurons = num_neurons
         self.p = p
         self.f = f
         self.first_p = first_p
         self.inverted_fraction = inverted_fraction
+
         self.noise_variance = noise_variance
         self.noise_modulation = noise_modulation
-        self.noise_history = np.zeros((num_neurons, num_iterations))
+        self.noise = np.zeros((num_neurons, num_iterations))
+
         self.learning_rate = learning_rate
         self.forgetting_rate = forgetting_rate
         assert (self.learning_rate and self.forgetting_rate) <= 1
@@ -47,6 +51,7 @@ class Hopfield:
         self.weights = np.zeros((self.num_neurons, self.num_neurons))
         self.next_theoretical_weights = np.zeros_like(self.weights)
         self.next_weights = np.zeros_like(self.weights)
+        self.theoretical_weights_history = []
         self.weights_mean = []
 
         self.pattern_similarity_history = []
@@ -79,6 +84,9 @@ class Hopfield:
 
         # print("\nInitial currents:\n", self.currents)
 
+    def update_theoretical_weights_history(self):
+        self.theoretical_weights_history.append(self.next_theoretical_weights)
+
     def calculate_next_weights(self, pattern):
         """
         Calculate the weights after the presentation of a new pattern but does
@@ -93,6 +101,7 @@ class Hopfield:
                     * (2 * pattern[j] - 1) \
 
         self.next_theoretical_weights += self.next_theoretical_weights.T
+        self.update_theoretical_weights_history()
 
     def update_weights(self, weights):
         self.weights += weights
@@ -108,17 +117,14 @@ class Hopfield:
 
         print("Done!")
 
-    def gaussian_noise(self):
-        """
-        Amplitude-modulated Gaussian noise.
+    def compute_noise(self):
+        print("Computing modulated Gaussian noise...")
 
-        :param variance: float
-        :return: int, noise_value
-        """
-        noise = np.random.normal(loc=0, scale=self.noise_variance ** 0.5)\
-            * self.noise_modulation
-        self.noise_history.append(noise)
-        return noise
+        for i in range(self.num_neurons):
+            for j in range(self.num_iterations):
+                self.noise[i, j] = hopfield_tools.modulated_gaussian_noise(
+                    self.noise_variance, self.noise_modulation
+                )
 
     def _update_current(self, neuron):
         """
@@ -136,8 +142,7 @@ class Hopfield:
         self.currents[-1, neuron] =\
             hopfield_tools.heaviside_activation(
                 dot_product
-                + self.gaussian_noise()
-            )
+                + self.noise[neuron, self.n_iteration])
 
     def update_all_neurons(self):
         """
@@ -179,7 +184,10 @@ class Hopfield:
         self.currents[-1, neuron] =\
             hopfield_tools.heaviside_activation(
                 dot_product
-                + self.gaussian_noise())
+                + hopfield_tools.modulated_gaussian_noise(self.noise_variance,
+                                                          self.noise_modulation
+                                                          )
+            )
 
     def update_all_neurons_learning(self):
         """
@@ -214,8 +222,8 @@ class Hopfield:
 
     def _find_attractor(self):
         """
-        If an update does not change any of the node values, the hopfield_network
-        rests at an attractor and updating stops.
+        If an update does not change any of the node values, the
+        hopfield_network rests at an attractor and updating stops.
         """
         tot = 1
 
@@ -279,8 +287,7 @@ class Hopfield:
 
     def decide(self, item, possible_replies, time=None, time_index=None):
         p_r = self.p_recall(item,
-                            time=time,
-                            time_index=time_index)
+                            time=time)
         r = np.random.random()
 
         if p_r > r:
@@ -326,7 +333,8 @@ class Hopfield:
 
     def forget(self, constant=10000000):
         self.next_weights = \
-            (self.weights + self.gaussian_noise() * constant) \
+            (self.weights + hopfield_tools.modulated_gaussian_noise(
+                self.noise_variance, self.noise_modulation) * constant) \
             * self.forgetting_rate
 
         self.update_weights(self.next_weights)
@@ -401,30 +409,28 @@ def main(force=False):
         #     hopfield_network.update_all_neurons_learning()
         #     hopfield_network.update_pattern_similarity(n_pattern=0)
 
+        network.compute_noise()
         network.calculate_next_weights(network.patterns[0])
         # network.update_weights(network.next_theoretical_weights)
         # network.update_all_neurons()
-        # plot_tools.plot_weights(network)
+        # plot.plot_weights(network)
         # network.calculate_next_weights(network.patterns[1])
         network.update_pattern_similarity(n_pattern=0)
-
-        print(network.next_theoretical_weights)
 
         for i in range(network.num_iterations):
             network.learn()
             network.update_all_neurons_learning()
             network.update_pattern_similarity(n_pattern=0)
 
-        plot_tools.plot_weights(network)
+        plot.weights(network)
 
         # hopfield_network.simulate_learning(iterations=100,
         # recalled_pattern=2)
 
         network.weights = np.zeros_like(network.next_theoretical_weights)
         network.next_theoretical_weights = np.zeros_like(network.weights)
-        print(network.weights)
         network.compute_weights_all_patterns()
-        plot_tools.plot_weights(network)
+        plot.weights(network)
 
         #################################
         # #### END OF TESTING AREA #### #
@@ -436,12 +442,14 @@ def main(force=False):
         print("Loading from pickle file...")
         network = pickle.load(open(bkp_file, "rb"))
 
-    plot_tools.plot_mean_weights(network)
-    plot_tools.plot_energy(network)
-    plot_tools.plot_pattern_similarity(network)
-    plot_tools.plot_currents(network)
-    plot_tools.plot_weights(network)
-    plot_tools.plot_noise(network)
+    plot.mean_weights(network)
+    plot.energy(network)
+    plot.pattern_similarity(network)
+    plot.currents(network)
+    plot.weights(network)
+    plot.noise(network)
+    for i in range(len(network.theoretical_weights_history)):
+        plot.theoretical_weights(network, i)
 
 
 if __name__ == '__main__':
