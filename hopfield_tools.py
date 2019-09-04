@@ -44,16 +44,6 @@ def heaviside_activation(x):
     return int(x >= 0)
 
 
-def gaussian_noise(variance):
-    """
-    Amplitude-modulated Gaussian noise.
-
-    :param variance: float
-    :return: int, noise_value
-    """
-    return np.random.normal(loc=0, scale=variance**0.5) * 0.05
-
-
 def compute_pattern_similarity(pattern_0, pattern_1):
     """
     Returns the squared proportion of bits that match in value and position

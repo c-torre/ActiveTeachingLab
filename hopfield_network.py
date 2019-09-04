@@ -24,12 +24,14 @@ class Hopfield:
     bounds = ('learning_rate', 10**-7, 0.99), \
              ('forgetting_rate', 10**-7, 0.99),
 
-    def __init__(self, num_neurons=1000, p=16, f=0.1, inverted_fraction=0.3,
-                 noise_variance=65, noise_modulation=0.05, first_p=0,
-                 learning_rate=0.3, forgetting_rate=0.1, **kwargs):
+    def __init__(self, num_iterations, num_neurons=1000, p=16, f=0.1,
+                 inverted_fraction=0.3, noise_variance=65,
+                 noise_modulation=0.05, first_p=0, learning_rate=0.3,
+                 forgetting_rate=0.1, **kwargs):
 
         super().__init__(**kwargs)
 
+        self.num_iterations = num_iterations
         self.num_neurons = num_neurons
         self.p = p
         self.f = f
@@ -37,6 +39,7 @@ class Hopfield:
         self.inverted_fraction = inverted_fraction
         self.noise_variance = noise_variance
         self.noise_modulation = noise_modulation
+        self.noise_history = np.zeros((num_neurons, num_iterations))
         self.learning_rate = learning_rate
         self.forgetting_rate = forgetting_rate
         assert (self.learning_rate and self.forgetting_rate) <= 1
@@ -105,6 +108,18 @@ class Hopfield:
 
         print("Done!")
 
+    def gaussian_noise(self):
+        """
+        Amplitude-modulated Gaussian noise.
+
+        :param variance: float
+        :return: int, noise_value
+        """
+        noise = np.random.normal(loc=0, scale=self.noise_variance ** 0.5)\
+            * self.noise_modulation
+        self.noise_history.append(noise)
+        return noise
+
     def _update_current(self, neuron):
         """
         If you are updating one node of a Hopfield hopfield_network, then the
@@ -121,8 +136,7 @@ class Hopfield:
         self.currents[-1, neuron] =\
             hopfield_tools.heaviside_activation(
                 dot_product
-                + hopfield_tools.gaussian_noise(self.noise_variance)
-                * self.noise_modulation
+                + self.gaussian_noise()
             )
 
     def update_all_neurons(self):
@@ -165,8 +179,7 @@ class Hopfield:
         self.currents[-1, neuron] =\
             hopfield_tools.heaviside_activation(
                 dot_product
-                + hopfield_tools.gaussian_noise(self.noise_variance)
-                * self.noise_modulation)
+                + self.gaussian_noise())
 
     def update_all_neurons_learning(self):
         """
@@ -313,8 +326,7 @@ class Hopfield:
 
     def forget(self, constant=10000000):
         self.next_weights = \
-            (self.weights + hopfield_tools.gaussian_noise(self.noise_variance)
-             * self.noise_modulation * constant) \
+            (self.weights + self.gaussian_noise() * constant) \
             * self.forgetting_rate
 
         self.update_weights(self.next_weights)
@@ -358,6 +370,7 @@ def main(force=False):
         np.random.seed(123)
 
         network = Hopfield(
+            num_iterations=50,
             num_neurons=20,
             f=0.55,
             p=2,
@@ -397,7 +410,7 @@ def main(force=False):
 
         print(network.next_theoretical_weights)
 
-        for i in range(17):
+        for i in range(network.num_iterations):
             network.learn()
             network.update_all_neurons_learning()
             network.update_pattern_similarity(n_pattern=0)
@@ -428,6 +441,7 @@ def main(force=False):
     plot_tools.plot_pattern_similarity(network)
     plot_tools.plot_currents(network)
     plot_tools.plot_weights(network)
+    plot_tools.plot_noise(network)
 
 
 if __name__ == '__main__':

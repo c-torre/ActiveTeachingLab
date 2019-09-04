@@ -90,3 +90,21 @@ def plot_energy(network):
     ax.set_zlabel("Energy")
 
     plt.show()
+
+
+def plot_noise(network):
+
+    fig, ax = plt.subplots()
+
+    n_iteration = network.noise_values.shape[1]
+
+    x = np.arange(n_iteration, dtype=float) * dt
+    ys = noise_values
+
+    for y in ys:
+        ax.plot(x, y, linewidth=0.5, alpha=0.2)
+
+    ax.set_xlabel("Time (cycles)")
+    ax.set_ylabel("Noise")
+
+    plt.show()
