@@ -1,9 +1,10 @@
 import os
 import pickle
 
+# from tqdm import tqdm
+import matplotlib.pyplot as plt
 # import matplotlib.pyplot as plt
 import numpy as np
-from tqdm import tqdm
 
 import hopfield_tools
 import plot.plot_tools as plot
@@ -51,7 +52,7 @@ class Hopfield:
         self.weights = np.zeros((self.num_neurons, self.num_neurons))
         self.next_theoretical_weights = np.zeros_like(self.weights)
         self.next_weights = np.zeros_like(self.weights)
-        self.theoretical_weights_history = []
+        self.theoretical_weights_history = [np.zeros_like(self.weights)]
         self.weights_mean = []
 
         self.pattern_similarity_history = []
@@ -85,14 +86,18 @@ class Hopfield:
         # print("\nInitial currents:\n", self.currents)
 
     def update_theoretical_weights_history(self):
-        self.theoretical_weights_history.append(self.next_theoretical_weights)
+        self.next_theoretical_weights += self.theoretical_weights_history[-1]
+
+        self.theoretical_weights_history.append(
+            np.copy(self.next_theoretical_weights)
+        )
 
     def calculate_next_weights(self, pattern):
         """
         Calculate the weights after the presentation of a new pattern but does
         not change the current weights of the hopfield_network
         """
-        for i in tqdm(range(self.num_neurons)):
+        for i in (range(self.num_neurons)):  # tqdm
             for j in range(self.num_neurons):
                 if j >= i:
                     break
@@ -110,10 +115,9 @@ class Hopfield:
         """Testing method"""
         print(f"\n...Computing weights for all patterns...\n")
 
-        for p in tqdm(range(len(self.patterns))):
+        for p in (range(len(self.patterns))):  # tqdm
             self.calculate_next_weights(self.patterns[p])
             self.update_weights(self.next_theoretical_weights)
-            print(self.next_theoretical_weights)
 
         print("Done!")
 
@@ -379,13 +383,13 @@ def main(force=False):
 
         network = Hopfield(
             num_iterations=50,
-            num_neurons=20,
+            num_neurons=10,
             f=0.55,
-            p=2,
+            p=5,
             first_p=0,
-            inverted_fraction=0.5,
-            learning_rate=0.1,
-            forgetting_rate=0.1
+            inverted_fraction=0.51,
+            learning_rate=1,
+            forgetting_rate=1
         )
 
         ##########################
@@ -410,27 +414,36 @@ def main(force=False):
         #     hopfield_network.update_pattern_similarity(n_pattern=0)
 
         network.compute_noise()
-        network.calculate_next_weights(network.patterns[0])
-        # network.update_weights(network.next_theoretical_weights)
-        # network.update_all_neurons()
-        # plot.plot_weights(network)
+        # network.calculate_next_weights(network.patterns[0])
+        # print(network.theoretical_weights_history)
         # network.calculate_next_weights(network.patterns[1])
-        network.update_pattern_similarity(n_pattern=0)
+        for j in range(len(network.patterns)):
+            network.calculate_next_weights(network.patterns[j])
+        # print(network.theoretical_weights_history)
+        # network.update_weights(network.next_theoretical_weights)
+        # network.calculate_next_weights(network.patterns[1])
+        # network.update_weights(network.next_theoretical_weights)
+        # print('-' * 10)
+        # print(network.theoretical_weights_history[0])
+        # print(network.theoretical_weights_history[1])
+        # print(network.theoretical_weights_history[2])
 
-        for i in range(network.num_iterations):
-            network.learn()
-            network.update_all_neurons_learning()
-            network.update_pattern_similarity(n_pattern=0)
+        # network.update_pattern_similarity(n_pattern=1)
+        #
+        # for i in range(network.num_iterations):
+        #     network.learn()
+        #     network.update_all_neurons_learning()
+        #     network.update_pattern_similarity(n_pattern=1)
 
-        plot.weights(network)
+        # plot.weights(network)
 
         # hopfield_network.simulate_learning(iterations=100,
         # recalled_pattern=2)
 
-        network.weights = np.zeros_like(network.next_theoretical_weights)
-        network.next_theoretical_weights = np.zeros_like(network.weights)
-        network.compute_weights_all_patterns()
-        plot.weights(network)
+        # network.weights = np.zeros_like(network.next_theoretical_weights)
+        # network.next_theoretical_weights = np.zeros_like(network.weights)
+        # network.compute_weights_all_patterns()
+        # plot.weights(network)
 
         #################################
         # #### END OF TESTING AREA #### #
@@ -443,13 +456,13 @@ def main(force=False):
         network = pickle.load(open(bkp_file, "rb"))
 
     # plot.mean_weights(network)
-    # plot.energy(network)
     # plot.pattern_similarity(network)
     # plot.currents(network)
     # plot.weights(network)
-    plot.noise(network)
-    # for i in range(len(network.theoretical_weights_history)):
-    #     plot.theoretical_weights(network, i)
+    # plot.noise(network)
+    # plot.energy(network)
+    for i in range(len(network.theoretical_weights_history)-1):
+        plot.theoretical_weights(network, i+1)
 
 
 if __name__ == '__main__':

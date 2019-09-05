@@ -28,7 +28,8 @@ def currents(network):
 def weights(network):
 
     fig, ax = plt.subplots()
-    im = ax.contourf(network.weights)
+    # im = ax.contourf(network.weights)
+    im = plt.imshow(network.weights)
     ax.set_aspect("auto")
 
     ax.set_title("Weights matrix")
@@ -45,7 +46,8 @@ def theoretical_weights(network, index):
     assert index < len(network.theoretical_weights_history)
 
     fig, ax = plt.subplots()
-    im = ax.contourf(network.theoretical_weights_history[index])
+    # im = ax.contourf(network.theoretical_weights_history[index])
+    im = ax.imshow(network.theoretical_weights_history[index])
     ax.set_aspect("auto")
 
     ax.set_title(f"Theoretical weights (iter={index})")
@@ -74,9 +76,10 @@ def theoretical_weights_point_change(network):
 
     neurons_noise = network.noise
 
-    for matrix in
-    for n_neuron in neurons_noise:
-        ax.plot(n_neuron, linewidth=0.5, alpha=0.9)
+    for matrix in changes:
+        for i in matrix:
+            for j in matrix:
+                ax.plot(matrix[i, j], linewidth=0.5, alpha=0.9)
 
     ax.set_xlabel("Iterations")
     ax.set_ylabel("Noise")
