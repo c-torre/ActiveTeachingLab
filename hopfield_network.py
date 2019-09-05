@@ -52,6 +52,7 @@ class Hopfield:
         self.weights = np.zeros((self.num_neurons, self.num_neurons))
         self.next_theoretical_weights = np.zeros_like(self.weights)
         self.next_weights = np.zeros_like(self.weights)
+        self.weights_history = [np.zeros_like(self.weights)]
         self.theoretical_weights_history = [np.zeros_like(self.weights)]
         self.weights_mean = []
 
@@ -85,6 +86,9 @@ class Hopfield:
 
         # print("\nInitial currents:\n", self.currents)
 
+    def update_weights_history(self):
+        self.weights_history.append(np.copy(self.weights))
+
     def update_theoretical_weights_history(self):
         self.next_theoretical_weights += self.theoretical_weights_history[-1]
 
@@ -92,7 +96,7 @@ class Hopfield:
             np.copy(self.next_theoretical_weights)
         )
 
-    def calculate_next_weights(self, pattern):
+    def calculate_next_theoretical_weights(self, pattern):
         """
         Calculate the weights after the presentation of a new pattern but does
         not change the current weights of the hopfield_network
@@ -116,7 +120,7 @@ class Hopfield:
         print(f"\n...Computing weights for all patterns...\n")
 
         for p in (range(len(self.patterns))):  # tqdm
-            self.calculate_next_weights(self.patterns[p])
+            self.calculate_next_theoretical_weights(self.patterns[p])
             self.update_weights(self.next_theoretical_weights)
 
         print("Done!")
@@ -280,6 +284,10 @@ class Hopfield:
         self.update_all_neurons()
         self._find_attractor()
 
+    # def update_theoretical_weights_history(self, weights):
+    #     self.
+
+
     ###########################
     # ACTIVE TEACHING METHODS #
     ###########################
@@ -349,17 +357,17 @@ class Hopfield:
     def simulate_learning(self, iterations, recalled_pattern):
 
         if self.p == 1:
-            self.calculate_next_weights(self.patterns[self.first_p])
+            self.calculate_next_theoretical_weights(self.patterns[self.first_p])
             self.update_all_neurons()
         else:
             # for p in range(self.p - 2):
             for p in range(len(self.patterns - 1)):
-                self.calculate_next_weights(self.patterns[p])
+                self.calculate_next_theoretical_weights(self.patterns[p])
                 self.update_weights(self.next_theoretical_weights)
 
             # self.currents = np.vstack((self.currents,
                                        # np.zeros(self.num_neurons)))
-            self.calculate_next_weights(self.patterns[self.p - 1])
+            self.calculate_next_theoretical_weights(self.patterns[self.p - 1])
             self.update_all_neurons()
         # self.update_all_neurons()
 
@@ -418,7 +426,7 @@ def main(force=False):
         # print(network.theoretical_weights_history)
         # network.calculate_next_weights(network.patterns[1])
         for j in range(len(network.patterns)):
-            network.calculate_next_weights(network.patterns[j])
+            network.calculate_next_theoretical_weights(network.patterns[j])
         # print(network.theoretical_weights_history)
         # network.update_weights(network.next_theoretical_weights)
         # network.calculate_next_weights(network.patterns[1])

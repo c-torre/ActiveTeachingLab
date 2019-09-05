@@ -46,7 +46,7 @@ def theoretical_weights(network, index):
     assert index < len(network.theoretical_weights_history)
 
     fig, ax = plt.subplots()
-    # im = ax.contourf(network.theoretical_weights_history[index])
+    # im = ax.contourf(network.theoretical_weights_history[index])  # fancy
     im = ax.imshow(network.theoretical_weights_history[index])
     ax.set_aspect("auto")
 
