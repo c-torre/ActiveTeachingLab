@@ -287,7 +287,6 @@ class Hopfield:
     # def update_theoretical_weights_history(self, weights):
     #     self.
 
-
     ###########################
     # ACTIVE TEACHING METHODS #
     ###########################
@@ -391,7 +390,7 @@ def main(force=False):
 
         network = Hopfield(
             num_iterations=50,
-            num_neurons=10,
+            num_neurons=3,
             f=0.55,
             p=5,
             first_p=0,
@@ -469,8 +468,9 @@ def main(force=False):
     # plot.weights(network)
     # plot.noise(network)
     # plot.energy(network)
-    for i in range(len(network.theoretical_weights_history)-1):
-        plot.theoretical_weights(network, i+1)
+    plot.theoretical_weights_point_change(network)
+    # for i in range(len(network.theoretical_weights_history)-1):
+    #     plot.theoretical_weights(network, i+1)
 
 
 if __name__ == '__main__':

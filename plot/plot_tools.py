@@ -61,28 +61,30 @@ def theoretical_weights(network, index):
 
 
 def theoretical_weights_point_change(network):
+    """
+    Number of (visible) lines: $ 1 + n^2 + \sum_{-1}^{-n}n $
+    e.g. for a 3x3 weights matrix you should observe 4 lines as there are
+    5 overlaps (symmetrical matrix with 0 in the diagonal)
+    """
     assert len(network.theoretical_weights_history) > 0
 
-    changes = []
-
-    for i in range(len(network.theoretical_weights_history)):
-        if i+1 < len(network.theoretical_weights_history-1):
-            changes.append(np.sum((network.theoretical_weights_history[i+1],
-                           -network.theoretical_weights_history[i])))
-        else:
-            break
+    history = np.array(network.theoretical_weights_history)
+    diff = np.diff(history, axis=0)
 
     fig, ax = plt.subplots()
 
-    neurons_noise = network.noise
+    counter = 0
+    for i in range(diff.shape[1]):
+        for j in range(diff.shape[2]):
+            a = np.zeros(diff.shape[0])
+            for k in range(diff.shape[0]):
+                a[k] = diff[k, i, j]
+            ax.plot(a, alpha=0.7)
+            counter += 1
 
-    for matrix in changes:
-        for i in matrix:
-            for j in matrix:
-                ax.plot(matrix[i, j], linewidth=0.5, alpha=0.9)
-
-    ax.set_xlabel("Iterations")
-    ax.set_ylabel("Noise")
+    ax.set_xlabel("Weight matrix iteration")
+    ax.set_xticks(np.arange(diff.shape[0]))
+    ax.set_ylabel("Point value change")
 
     plt.show()
 
