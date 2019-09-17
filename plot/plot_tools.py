@@ -25,7 +25,7 @@ def currents(network):
     plt.show()
 
 
-def weights(network):
+def present_weights(network):
 
     fig, ax = plt.subplots()
     # im = ax.contourf(network.weights)
@@ -33,6 +33,24 @@ def weights(network):
     ax.set_aspect("auto")
 
     ax.set_title("Weights matrix")
+    ax.set_xlabel("Neuron $i$")
+    ax.set_ylabel("Neuron $j$")
+
+    plt.tight_layout()
+
+    fig.colorbar(im, ax=ax)
+    plt.show()
+
+
+def weights_index(network, index):
+    assert index < len(network.weights_history)
+
+    fig, ax = plt.subplots()
+    # im = ax.contourf(network.theoretical_weights_history[index])  # fancy
+    im = ax.imshow(network.weights_history[index])
+    ax.set_aspect("auto")
+
+    ax.set_title(f"Weights (iter={index})")
     ax.set_xlabel("Neuron $i$")
     ax.set_ylabel("Neuron $j$")
 
@@ -150,3 +168,4 @@ def noise(network):
     ax.set_ylabel("Noise")
 
     plt.show()
+

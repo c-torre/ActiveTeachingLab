@@ -340,6 +340,8 @@ class Hopfield:
         self.weights_mean.append(-np.mean(self.next_theoretical_weights)
                                  + np.mean(self.weights))
 
+        self.weights_history.append(self.weights)
+
     def unlearn(self):
         pass
 
@@ -401,13 +403,13 @@ def main(force=False):
         np.random.seed(123)
 
         network = Hopfield(
-            num_iterations=50,
+            num_iterations=10,
             num_neurons=3,
-            f=0.55,
+            f=0.45,
             p=3,
             first_p=0,
             inverted_fraction=0.51,
-            learning_rate=1,
+            learning_rate=0.001,
             forgetting_rate=1
         )
 
@@ -417,12 +419,13 @@ def main(force=False):
 
         network.compute_all_theoretical_weights()
         network.compute_noise()
+        # network.update_all_neurons()
 
         for i in range(network.num_iterations):
             network.learn()
             network.update_all_neurons_learning()
             network.update_pattern_similarity(n_pattern=0)
-
+        print(network.weights_history)
 
         # # learning loop
         # network.calculate_next_weights(hopfield_network.patterns[0])
@@ -458,7 +461,6 @@ def main(force=False):
         #     network.learn()
         #     network.update_all_neurons_learning()
         #     network.update_pattern_similarity(n_pattern=1)
-
         # plot.weights(network)
 
         # hopfield_network.simulate_learning(iterations=100,
@@ -480,14 +482,16 @@ def main(force=False):
         network = pickle.load(open(bkp_file, "rb"))
 
     plot.mean_weights(network)
-    # plot.pattern_similarity(network)
+    plot.pattern_similarity(network)
     # plot.currents(network)
-    plot.weights(network)
+    # plot.present_weights(network)
     # plot.noise(network)
     # plot.energy(network)
     plot.theoretical_weights_point_change(network)
-    for i in range(len(network.theoretical_weights_history)-1):
-        plot.theoretical_weights(network, i+1)
+    # for i in range(len(network.theoretical_weights_history)-1):
+    #     plot.theoretical_weights(network, i+1)
+    for i in range(len(network.weights_history)-1):
+        plot.weights_index(network, i+1)
 
 
 if __name__ == '__main__':
