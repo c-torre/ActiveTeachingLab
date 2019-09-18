@@ -487,11 +487,14 @@ def main(force=False):
     # plot.present_weights(network)
     # plot.noise(network)
     # plot.energy(network)
-    plot.theoretical_weights_point_change(network)
+    plot.array_element_change(network.weights_history)
+    plot.array_element_change(network.theoretical_weights_history)
     # for i in range(len(network.theoretical_weights_history)-1):
-    #     plot.theoretical_weights(network, i+1)
-    for i in range(len(network.weights_history)-1):
-        plot.weights_index(network, i+1)
+    #     plot.array_history_index(network.theoretical_weights_history,
+    #                              index=i+1, contour=False)
+    # for i in range(len(network.weights_history)-1):
+    #     plot.array_history_index(network.weights_history,
+    #                              index=i+1, contour=False)
 
 
 if __name__ == '__main__':

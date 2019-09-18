@@ -42,12 +42,13 @@ def present_weights(network):
     plt.show()
 
 
-def weights_index(network, index):
-    assert index < len(network.weights_history)
+def array_history_index(array_history, index, contour=False):
+    assert index < len(array_history)
 
     fig, ax = plt.subplots()
-    # im = ax.contourf(network.theoretical_weights_history[index])  # fancy
-    im = ax.imshow(network.weights_history[index])
+    if contour:
+        im = ax.contourf(array_history[index])
+    im = ax.imshow(array_history[index])
     ax.set_aspect("auto")
 
     ax.set_title(f"Weights (iter={index})")
@@ -57,6 +58,31 @@ def weights_index(network, index):
     plt.tight_layout()
 
     fig.colorbar(im, ax=ax)
+    plt.show()
+
+
+def array_element_change(array_history, alpha=0.7):
+    assert len(array_history) > 0
+
+    history = np.array(array_history)
+    diff = np.diff(history, axis=0)
+
+    fig, ax = plt.subplots()
+
+    counter = 0
+    for j in range(diff.shape[1]):
+        for k in range(diff.shape[2]):
+            a = np.zeros(diff.shape[0])
+            for i in range(diff.shape[0]):
+                a[i] = diff[i, j, k]
+            ax.plot(a, alpha=alpha)
+            counter += 1
+
+    ax.set_title("Matrix element change")
+    ax.set_xlabel("Iteration")
+    ax.set_xticks(np.arange(diff.shape[0]))
+    ax.set_ylabel("Point value change")
+
     plt.show()
 
 
@@ -75,35 +101,6 @@ def theoretical_weights(network, index):
     plt.tight_layout()
 
     fig.colorbar(im, ax=ax)
-    plt.show()
-
-
-def theoretical_weights_point_change(network):
-    """
-    Number of (visible) lines: $ 1 + n^2 + \sum_{-1}^{-n}n $
-    e.g. for a 3x3 weights matrix you should observe 4 lines as there are
-    5 overlaps (symmetrical matrix with 0 in the diagonal)
-    """
-    assert len(network.theoretical_weights_history) > 0
-
-    history = np.array(network.theoretical_weights_history)
-    diff = np.diff(history, axis=0)
-
-    fig, ax = plt.subplots()
-
-    counter = 0
-    for i in range(diff.shape[1]):
-        for j in range(diff.shape[2]):
-            a = np.zeros(diff.shape[0])
-            for k in range(diff.shape[0]):
-                a[k] = diff[k, i, j]
-            ax.plot(a, alpha=0.7)
-            counter += 1
-
-    ax.set_xlabel("Weight matrix iteration")
-    ax.set_xticks(np.arange(diff.shape[0]))
-    ax.set_ylabel("Point value change")
-
     plt.show()
 
 
