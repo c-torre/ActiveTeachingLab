@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 # import matplotlib.pyplot as plt
 import numpy as np
 
-import hopfield_tools
+import hopfield_tools as tools
 import plot.plot_tools as plot
 
 
@@ -56,7 +56,8 @@ class Hopfield:
         self.theoretical_weights_history = [np.zeros_like(self.weights)]
         self.weights_mean = []
 
-        self.pattern_similarity_history = []
+        self.pattern_similarity = np.zeros((
+            self.p, self.num_iterations))
 
         self.active_fraction = f
 
@@ -79,7 +80,7 @@ class Hopfield:
     def _initialize_currents(self):
         """Initial currents are set to the first distorted pattern."""
 
-        self.currents = np.copy(hopfield_tools.distort_pattern(
+        self.currents = np.copy(tools.distort_pattern(
             self.patterns[self.first_p],
             self.inverted_fraction)
         )
@@ -142,7 +143,7 @@ class Hopfield:
 
         for i in range(self.num_neurons):
             for j in range(self.num_iterations):
-                self.noise[i, j] = hopfield_tools.modulated_gaussian_noise(
+                self.noise[i, j] = tools.modulated_gaussian_noise(
                     self.noise_variance, self.noise_modulation
                 )
 
@@ -160,7 +161,7 @@ class Hopfield:
         dot_product = np.dot(self.weights[neuron], self.currents[-2])
 
         self.currents[-1, neuron] =\
-            hopfield_tools.heaviside_activation(
+            tools.heaviside_activation(
                 dot_product
                 + self.noise[neuron, self.n_iteration])
 
@@ -202,11 +203,10 @@ class Hopfield:
         dot_product = np.dot(self.weights[neuron], random_currents)
 
         self.currents[-1, neuron] =\
-            hopfield_tools.heaviside_activation(
+            tools.heaviside_activation(
                 dot_product
-                + hopfield_tools.modulated_gaussian_noise(self.noise_variance,
-                                                          self.noise_modulation
-                                                          )
+                + tools.modulated_gaussian_noise(self.noise_variance,
+                                                 self.noise_modulation)
             )
 
     def update_all_neurons_learning(self):
@@ -273,18 +273,24 @@ class Hopfield:
         assert (item is not None and n_pattern is None) \
             or (n_pattern is not None and item is None)
         if item is not None:
-            bin_item = hopfield_tools.binarize_item(item, self.num_neurons)
+            bin_item = tools.binarize_item(item, self.num_neurons)
+        # elif n_pattern is not None:
+        #     bin_item = self.patterns[n_pattern]
         elif n_pattern is not None:
-            bin_item = self.patterns[n_pattern]
+            bin_item = self.patterns
         else:
             raise Exception("Item or n_pattern should be given")
 
-        similarity = hopfield_tools.compute_pattern_similarity(
-            self.currents[-1],
-            bin_item
-        )
+        for p in range(self.p):
+            self.pattern_similarity[p, self.n_iteration] =\
+                tools.compute_pattern_similarity(self.currents[-1], bin_item[p])
 
-        self.pattern_similarity_history.append(similarity)
+        # similarity = tools.compute_pattern_similarity(
+        #     self.currents[-1],
+        #     bin_item
+        # )
+        #
+        # self.pattern_similarity.append(similarity)
 
     def simulate(self):
         # assert self.patterns
@@ -296,8 +302,8 @@ class Hopfield:
         self.update_all_neurons()
         self._find_attractor()
 
-    # def update_theoretical_weights_history(self, weights):
-    #     self.
+    def update_n_iteration(self):
+        self.n_iteration += 1
 
     ###########################
     # ACTIVE TEACHING METHODS #
@@ -358,7 +364,7 @@ class Hopfield:
 
     def forget(self, constant=10000000):
         self.next_weights = \
-            (self.weights + hopfield_tools.modulated_gaussian_noise(
+            (self.weights + tools.modulated_gaussian_noise(
                 self.noise_variance, self.noise_modulation) * constant) \
             * self.forgetting_rate
 
@@ -403,7 +409,7 @@ def main(force=False):
         np.random.seed(123)
 
         network = Hopfield(
-            num_iterations=10,
+            num_iterations=3,
             num_neurons=3,
             f=0.45,
             p=3,
@@ -425,7 +431,9 @@ def main(force=False):
             network.learn()
             network.update_all_neurons_learning()
             network.update_pattern_similarity(n_pattern=0)
-        print(network.weights_history)
+            network.update_n_iteration()
+        # print(network.weights_history)
+        print(network.pattern_similarity)
 
         # # learning loop
         # network.calculate_next_weights(hopfield_network.patterns[0])
@@ -483,18 +491,18 @@ def main(force=False):
 
     plot.mean_weights(network)
     plot.pattern_similarity(network)
-    # plot.currents(network)
-    # plot.present_weights(network)
-    # plot.noise(network)
-    # plot.energy(network)
+    plot.currents(network)
+    plot.present_weights(network)
+    plot.noise(network)
+    plot.energy(network)
     plot.array_element_change(network.weights_history)
     plot.array_element_change(network.theoretical_weights_history)
-    # for i in range(len(network.theoretical_weights_history)-1):
-    #     plot.array_history_index(network.theoretical_weights_history,
-    #                              index=i+1, contour=False)
-    # for i in range(len(network.weights_history)-1):
-    #     plot.array_history_index(network.weights_history,
-    #                              index=i+1, contour=False)
+    for i in range(len(network.theoretical_weights_history)-1):
+        plot.array_history_index(network.theoretical_weights_history,
+                                 index=i+1, contour=False)
+    for i in range(len(network.weights_history)-1):
+        plot.array_history_index(network.weights_history,
+                                 index=i+1, contour=False)
 
 
 if __name__ == '__main__':

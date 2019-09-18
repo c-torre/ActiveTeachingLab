@@ -1,7 +1,12 @@
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.mplot3d import Axes3D
+
+FIG_FOLDER = 'fig'
+os.makedirs(FIG_FOLDER, exist_ok=True)
 
 
 def currents(network):
@@ -22,7 +27,8 @@ def currents(network):
     ax.set_ylabel("Iteration")
 
     plt.tight_layout()
-    plt.show()
+
+    plt.savefig(os.path.join(FIG_FOLDER, "currents.pdf"))
 
 
 def present_weights(network):
@@ -39,13 +45,15 @@ def present_weights(network):
     plt.tight_layout()
 
     fig.colorbar(im, ax=ax)
-    plt.show()
+
+    plt.savefig(os.path.join(FIG_FOLDER, "present_weights.pdf"))
 
 
 def array_history_index(array_history, index, contour=False):
     assert index < len(array_history)
 
     fig, ax = plt.subplots()
+
     if contour:
         im = ax.contourf(array_history[index])
     im = ax.imshow(array_history[index])
@@ -58,7 +66,7 @@ def array_history_index(array_history, index, contour=False):
     plt.tight_layout()
 
     fig.colorbar(im, ax=ax)
-    plt.show()
+    plt.savefig(os.path.join(FIG_FOLDER, "array_history_index.pdf"))
 
 
 def array_element_change(array_history, alpha=0.7):
@@ -83,7 +91,7 @@ def array_element_change(array_history, alpha=0.7):
     ax.set_xticks(np.arange(diff.shape[0]))
     ax.set_ylabel("Point value change")
 
-    plt.show()
+    plt.savefig(os.path.join(FIG_FOLDER, "array_element_change.pdf"))
 
 
 def theoretical_weights(network, index):
@@ -101,7 +109,7 @@ def theoretical_weights(network, index):
     plt.tight_layout()
 
     fig.colorbar(im, ax=ax)
-    plt.show()
+    plt.savefig(os.path.join(FIG_FOLDER, "theoretical_weights.pdf"))
 
 
 def mean_weights(network):
@@ -113,20 +121,23 @@ def mean_weights(network):
     ax.set_xlabel("Iteration")
     ax.set_ylabel("Difference of means")
 
-    plt.show()
+    plt.savefig(os.path.join(FIG_FOLDER, "mean_weights.pdf"))
 
 
 def pattern_similarity(network):
 
     fig, ax = plt.subplots()
-    ax.plot(network.pattern_similarity_history)
+    # ax.plot(network.pattern_similarity)  # For single line; comment loop
+
+    for p in range(network.p):
+        ax.plot(network.pattern_similarity[p])
 
     ax.set_title("Pattern similarity")
     ax.set_xlabel("Iteration")
     ax.set_ylabel("Pattern match$^2$")
     ax.set_ylim((-0.1, 1.1))
 
-    plt.show()
+    plt.savefig(os.path.join(FIG_FOLDER, "pattern_similarity.pdf"))
 
 
 def energy(network):
@@ -149,7 +160,7 @@ def energy(network):
     ax.set_ylabel("Neuron $_j$")
     ax.set_zlabel("Energy")
 
-    plt.show()
+    plt.savefig(os.path.join(FIG_FOLDER, "energy.pdf"))
 
 
 def noise(network):
@@ -161,8 +172,33 @@ def noise(network):
     for n_neuron in neurons_noise:
         ax.plot(n_neuron, linewidth=0.5, alpha=0.9)
 
+    ax.set_title("Noise")
     ax.set_xlabel("Iterations")
     ax.set_ylabel("Noise")
 
-    plt.show()
+    plt.savefig(os.path.join(FIG_FOLDER, "noise.pdf"))
 
+
+def activity_image(firing_rates, dt=1.):
+
+    fig, ax = plt.subplots()
+
+    n_memory, n_iteration = firing_rates.shape
+
+    im = ax.imshow(firing_rates, cmap="jet",
+                   extent=[
+                        0, n_iteration * dt,
+                        n_memory - 0.5, -0.5
+                   ])
+
+    ax.set_xlabel('Time (cycles)')
+    ax.set_ylabel("Attractor number")
+
+    fig.colorbar(im, ax=ax)
+
+    ax.set_aspect(aspect='auto')
+    ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+
+    plt.tight_layout()
+
+    plt.savefig(os.path.join(FIG_FOLDER, "activity_image.pdf"))
