@@ -177,28 +177,3 @@ def noise(network):
     ax.set_ylabel("Noise")
 
     plt.savefig(os.path.join(FIG_FOLDER, "noise.pdf"))
-
-
-def activity_image(firing_rates, dt=1.):
-
-    fig, ax = plt.subplots()
-
-    n_memory, n_iteration = firing_rates.shape
-
-    im = ax.imshow(firing_rates, cmap="jet",
-                   extent=[
-                        0, n_iteration * dt,
-                        n_memory - 0.5, -0.5
-                   ])
-
-    ax.set_xlabel('Time (cycles)')
-    ax.set_ylabel("Attractor number")
-
-    fig.colorbar(im, ax=ax)
-
-    ax.set_aspect(aspect='auto')
-    ax.yaxis.set_major_locator(MaxNLocator(integer=True))
-
-    plt.tight_layout()
-
-    plt.savefig(os.path.join(FIG_FOLDER, "activity_image.pdf"))

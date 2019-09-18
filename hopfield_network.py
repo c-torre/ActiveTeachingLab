@@ -489,20 +489,20 @@ def main(force=False):
         print("Loading from pickle file...")
         network = pickle.load(open(bkp_file, "rb"))
 
-    plot.mean_weights(network)
-    plot.pattern_similarity(network)
-    plot.currents(network)
-    plot.present_weights(network)
-    plot.noise(network)
-    plot.energy(network)
+    # plot.mean_weights(network)
+    # plot.pattern_similarity(network)
+    # plot.currents(network)
+    # plot.present_weights(network)
+    # plot.noise(network)
+    # plot.energy(network)
     plot.array_element_change(network.weights_history)
-    plot.array_element_change(network.theoretical_weights_history)
-    for i in range(len(network.theoretical_weights_history)-1):
-        plot.array_history_index(network.theoretical_weights_history,
-                                 index=i+1, contour=False)
-    for i in range(len(network.weights_history)-1):
-        plot.array_history_index(network.weights_history,
-                                 index=i+1, contour=False)
+    # plot.array_element_change(network.theoretical_weights_history)
+    # for i in range(len(network.theoretical_weights_history)-1):
+    #     plot.array_history_index(network.theoretical_weights_history,
+    #                              index=i+1, contour=False)
+    # for i in range(len(network.weights_history)-1):
+    #     plot.array_history_index(network.weights_history,
+    #                              index=i+1, contour=False)
 
 
 if __name__ == '__main__':
