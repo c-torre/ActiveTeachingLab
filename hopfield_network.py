@@ -49,11 +49,13 @@ class Hopfield:
         self.forgetting_rate = forgetting_rate
         assert (self.learning_rate and self.forgetting_rate) <= 1
 
-        self.weights = np.zeros((self.num_neurons, self.num_neurons))
+        # self.weights = np.zeros((self.num_neurons, self.num_neurons))
+        self.weights = np.random.random((self.num_neurons, self.num_neurons))
+        print("DEBUGGING: Weights initialized at random")
         self.next_theoretical_weights = np.zeros_like(self.weights)
         self.next_weights = np.zeros_like(self.weights)
-        self.weights_history = [np.zeros_like(self.weights)]
-        self.theoretical_weights_history = [np.zeros_like(self.weights)]
+        self.weights_history = [np.copy(self.weights)]
+        self.theoretical_weights_history = [np.copy(self.weights)]
         self.weights_mean = []
 
         self.pattern_similarity = np.zeros((
@@ -204,10 +206,7 @@ class Hopfield:
 
         self.currents[-1, neuron] =\
             tools.heaviside_activation(
-                dot_product
-                + tools.modulated_gaussian_noise(self.noise_variance,
-                                                 self.noise_modulation)
-            )
+                dot_product + self.noise[neuron, self.n_iteration])
 
     def update_all_neurons_learning(self):
         """
@@ -283,7 +282,8 @@ class Hopfield:
 
         for p in range(self.p):
             self.pattern_similarity[p, self.n_iteration] =\
-                tools.compute_pattern_similarity(self.currents[-1], bin_item[p])
+                tools.compute_pattern_similarity(self.currents[-1],
+                                                 bin_item[p])
 
         # similarity = tools.compute_pattern_similarity(
         #     self.currents[-1],
@@ -362,16 +362,20 @@ class Hopfield:
         #       f"node weight updates.\n")
         pass
 
-    def forget(self, constant=10000000):
-        self.next_weights = \
-            (self.weights + tools.modulated_gaussian_noise(
-                self.noise_variance, self.noise_modulation) * constant) \
-            * self.forgetting_rate
+    def forget(self):
+        noise = np.zeros_like(self.weights)
+        for i in np.nditer(noise, op_flags=["readwrite"]):
+            i += tools.modulated_gaussian_noise(self.noise_variance,
+                                                self.noise_modulation)
+
+        self.next_weights = - np.copy(self.weights) * self.forgetting_rate \
+            + noise
 
         self.update_weights(self.next_weights)
 
         self.weights_mean.append(-np.mean(self.next_theoretical_weights)
                                  + np.mean(self.weights))
+        self.weights_history.append(np.copy(self.weights))
 
     def simulate_learning(self, iterations, recalled_pattern):
 
@@ -409,14 +413,14 @@ def main(force=False):
         np.random.seed(123)
 
         network = Hopfield(
-            num_iterations=3,
-            num_neurons=3,
+            num_iterations=10,
+            num_neurons=5,
             f=0.45,
-            p=3,
+            p=1,
             first_p=0,
             inverted_fraction=0.51,
             learning_rate=0.001,
-            forgetting_rate=1
+            forgetting_rate=0.5
         )
 
         ##########################
@@ -425,15 +429,15 @@ def main(force=False):
 
         network.compute_all_theoretical_weights()
         network.compute_noise()
-        # network.update_all_neurons()
+        network.update_weights(network.theoretical_weights_history[-1])
+        network.update_all_neurons()
+        network.update_pattern_similarity(n_pattern=True)
 
         for i in range(network.num_iterations):
-            network.learn()
+            network.forget(1000)
             network.update_all_neurons_learning()
-            network.update_pattern_similarity(n_pattern=0)
+            network.update_pattern_similarity(n_pattern=True)
             network.update_n_iteration()
-        # print(network.weights_history)
-        print(network.pattern_similarity)
 
         # # learning loop
         # network.calculate_next_weights(hopfield_network.patterns[0])
@@ -448,37 +452,6 @@ def main(force=False):
         #     network.update_all_neurons_learning()
         #     network.update_pattern_similarity(n_pattern=0)
 
-        # network.compute_noise()
-        # network.calculate_next_weights(network.patterns[0])
-        # print(network.theoretical_weights_history)
-        # network.calculate_next_weights(network.patterns[1])
-        # for j in range(len(network.patterns)):
-        #     network.calculate_next_theoretical_weights(network.patterns[j])
-        # print(network.theoretical_weights_history)
-        # network.update_weights(network.next_theoretical_weights)
-        # network.calculate_next_weights(network.patterns[1])
-        # network.update_weights(network.next_theoretical_weights)
-        # print('-' * 10)
-        # print(network.theoretical_weights_history[0])
-        # print(network.theoretical_weights_history[1])
-        # print(network.theoretical_weights_history[2])
-
-        # network.update_pattern_similarity(n_pattern=1)
-        #
-        # for i in range(network.num_iterations):
-        #     network.learn()
-        #     network.update_all_neurons_learning()
-        #     network.update_pattern_similarity(n_pattern=1)
-        # plot.weights(network)
-
-        # hopfield_network.simulate_learning(iterations=100,
-        # recalled_pattern=2)
-
-        # network.weights = np.zeros_like(network.next_theoretical_weights)
-        # network.next_theoretical_weights = np.zeros_like(network.weights)
-        # network.compute_weights_all_patterns()
-        # plot.weights(network)
-
         #################################
         # #### END OF TESTING AREA #### #
         #################################
@@ -489,9 +462,9 @@ def main(force=False):
         print("Loading from pickle file...")
         network = pickle.load(open(bkp_file, "rb"))
 
-    # plot.mean_weights(network)
-    # plot.pattern_similarity(network)
-    # plot.currents(network)
+    plot.mean_weights(network)
+    plot.pattern_similarity(network)
+    plot.currents(network)
     # plot.present_weights(network)
     # plot.noise(network)
     # plot.energy(network)
@@ -500,10 +473,10 @@ def main(force=False):
     # for i in range(len(network.theoretical_weights_history)-1):
     #     plot.array_history_index(network.theoretical_weights_history,
     #                              index=i+1, contour=False)
-    # for i in range(len(network.weights_history)-1):
-    #     plot.array_history_index(network.weights_history,
-    #                              index=i+1, contour=False)
+    for i in range(len(network.weights_history)-1):
+        plot.array_history_index(network.weights_history,
+                                 index=i+1, contour=False)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(force=True)
