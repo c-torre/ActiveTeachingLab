@@ -127,7 +127,7 @@ def mean_weights(network):
 def pattern_similarity(network):
 
     fig, ax = plt.subplots()
-    # ax.plot(network.pattern_similarity)  # For single line; comment loop
+    # ax.tools(network.pattern_similarity)  # For single line; comment loop
 
     for p in range(network.p):
         ax.plot(network.pattern_similarity[p])
