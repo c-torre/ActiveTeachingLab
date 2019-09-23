@@ -18,7 +18,7 @@ class Hopfield:
         forgotten per time step
     """
 
-    version = 2.0
+    version = 3.0
     bounds = ('learning_rate', 10**-7, 0.99), \
              ('forgetting_rate', 10**-7, 0.99),
 
@@ -51,9 +51,13 @@ class Hopfield:
         print("DEBUGGING: Weights initialized at random")
         self.next_theoretical_weights = np.zeros_like(self.weights)
         self.next_weights = np.zeros_like(self.weights)
-        self.weights_history = [np.copy(self.weights)]
-        self.theoretical_weights_history = [np.copy(self.weights)]
-        self.weights_mean = []
+        # self.weights_history = [np.copy(self.weights)]
+        self.weights_history = np.zeros((self.num_iterations,
+                                         self.num_neurons, self.num_neurons))
+        # self.theoretical_weights_history = [np.copy(self.weights)]
+        self.theoretical_weights_history = np.zeros_like(self.weights_history)
+        # self.weights_mean = []
+        self.weights_mean = np.zeros(self.num_iterations)
 
         self.pattern_similarity = np.zeros((
             self.p, self.num_iterations))
@@ -164,7 +168,7 @@ class Hopfield:
                 dot_product
                 + self.noise[neuron, self.n_iteration])
 
-    def update_all_neurons(self):
+    def update_all_currents(self):
         """
         Neurons are updated update in random order as described by Hopfield.
         The full hopfield_network should be updated before the same node gets
@@ -245,7 +249,7 @@ class Hopfield:
 
         # np.sum(self.currents - self.last_currents) != 0:
         while (self.currents[-1, :] != self.currents[-2, :]).all() or tot < 2:
-            self.update_all_neurons()
+            self.update_all_currents()
             self._compute_patterns_evolution()
             tot += 1
             print(f"\nUpdate {tot} finished.\n")
@@ -296,7 +300,7 @@ class Hopfield:
         # self._initialize()
         self.compute_weights_all_patterns()
         self._initialize_currents()
-        self.update_all_neurons()
+        self.update_all_currents()
         self._find_attractor()
 
     def update_n_iteration(self):
@@ -325,7 +329,7 @@ class Hopfield:
         #     print(f't={self.t}: question {item}, reply {reply}')
         return reply
 
-    def learn(self, item=None, time=None):
+    def learn(self, index, item=None, time=None):
         """
         The normalized difference of means calculated at every time step gives
         a logarithmic emergent behavior as the weights get closer to the
@@ -334,29 +338,17 @@ class Hopfield:
         :param item:
         :param time:
         """
-
-        self.next_weights = (self.next_theoretical_weights - self.weights) \
-            * self.learning_rate
+        self.next_weights = (self.theoretical_weights_history[index]
+                             - self.weights) * self.learning_rate
 
         self.update_weights(self.next_weights)
 
         self.weights_mean.append(-np.mean(self.next_theoretical_weights)
                                  + np.mean(self.weights))
 
-        self.weights_history.append(self.weights)
+        self.weights_history.append(np.copy(self.weights))
 
     def unlearn(self):
-        pass
-
-    def fully_learn(self):
-        # tot = 1
-        #
-        # while (self.weights[-1] != self.next_theoretical_weights).all():
-        #     self.learn()
-        #     tot += 1
-        #
-        # print(f"\nFinished learning after {tot} "
-        #       f"node weight updates.\n")
         pass
 
     def forget(self):
@@ -374,30 +366,68 @@ class Hopfield:
                                  + np.mean(self.weights))
         self.weights_history.append(np.copy(self.weights))
 
-    def simulate_learning(self, iterations, recalled_pattern):
+    # def simulate_learning(self, iterations, recalled_pattern):
+    #
+    #     if self.p == 1:
+    #         self.calculate_next_theoretical_weights(
+    #             self.patterns[self.first_p])
+    #         self.update_all_neurons()
+    #     else:
+    #         # for p in range(self.p - 2):
+    #         for p in range(len(self.patterns - 1)):
+    #             self.calculate_next_theoretical_weights(self.patterns[p])
+    #             self.update_weights(self.next_theoretical_weights)
+    #
+    #         # self.currents = np.vstack((self.currents,
+    #                                    # np.zeros(self.num_neurons)))
+    #         self.calculate_next_theoretical_weights(self.patterns[self.p - 1])
+    #         self.update_all_neurons()
+    #     # self.update_all_neurons()
+    #
+    #     self.update_pattern_similarity(n_pattern=recalled_pattern)
+    #
+    #     for i in range(iterations):
+    #         self.learn()
+    #         self.update_all_neurons()
+    #         self.update_pattern_similarity(n_pattern=recalled_pattern)
 
-        if self.p == 1:
-            self.calculate_next_theoretical_weights(
-                self.patterns[self.first_p])
+    def learn_from_naive(self):
+        print("DEBUG: I'm learning for theoretical weights index -1!")
+        self.compute_all_theoretical_weights()
+        self.compute_noise()
+        self.update_all_currents()
+        for i in range(self.num_iterations):
+            # print(self.weights)
+            self.learn(-1)
+            self.update_all_neurons_learning()
+            self.update_pattern_similarity(n_pattern=True)
+            self.update_n_iteration()
+
+    def learn_more_patterns(self):
+        print("DEBUG: I'm learning pattern -1 after learning pattern -2")
+        assert self.p > 1
+
+        self.compute_all_theoretical_weights()
+        self.compute_noise()
+        self.update_weights(self.theoretical_weights_history[-2])
+        self.update_all_currents()
+        for i in range(self.num_iterations):
+            # print(self.weights)
+            self.learn(-1)
+            self.update_all_currents()
+            self.update_pattern_similarity(n_pattern=True)
+            self.update_n_iteration()
+
+    def test_forgetting(self):
+        self.compute_all_theoretical_weights()
+        self.compute_noise()
+        self.update_weights(self.theoretical_weights_history[-2])  # check if -2 -1 makes sense in this case
+        self.update_all_neurons()
+        self.update_weights(self.theoretical_weights_history[-1])
+        self.update_all_neurons()
+        for i in range(len(self.theoretical_weights_history)):
+            self.update_weights(self.theoretical_weights_history[i])
             self.update_all_neurons()
-        else:
-            # for p in range(self.p - 2):
-            for p in range(len(self.patterns - 1)):
-                self.calculate_next_theoretical_weights(self.patterns[p])
-                self.update_weights(self.next_theoretical_weights)
-
-            # self.currents = np.vstack((self.currents,
-                                       # np.zeros(self.num_neurons)))
-            self.calculate_next_theoretical_weights(self.patterns[self.p - 1])
-            self.update_all_neurons()
-        # self.update_all_neurons()
-
-        self.update_pattern_similarity(n_pattern=recalled_pattern)
-
-        for i in range(iterations):
-            self.learn()
-            self.update_all_neurons()
-            self.update_pattern_similarity(n_pattern=recalled_pattern)
 
 
 def main(force=False):
@@ -408,57 +438,22 @@ def main(force=False):
 
     if not os.path.exists(bkp_file) or force:
 
-        np.random.seed(123)
+        np.random.seed(1234)
 
         network = Hopfield(
-            num_iterations=100,
-            num_neurons=100,
-            f=0.65,
-            p=10,
+            num_iterations=25,
+            num_neurons=50,
+            f=0.51,
+            p=5,
             first_p=0,
             inverted_fraction=0.51,
-            learning_rate=0.001,
+            learning_rate=0.1,
             forgetting_rate=0.3
         )
 
-        ##########################
-        # #### TESTING AREA #### #
-        ##########################
-
-        network.compute_all_theoretical_weights()
-        network.compute_noise()
-        # network.update_weights(network.theoretical_weights_history[-2])
-        # network.update_all_neurons()
-        # network.update_weights(network.theoretical_weights_history[-1])
-        # network.update_all_neurons()
-        for i in range(len(network.theoretical_weights_history)):
-            network.update_weights(network.theoretical_weights_history[i])
-
-            network.update_all_neurons()
-        network.update_pattern_similarity(n_pattern=True)
-
-        for i in range(network.num_iterations):
-            network.forget()
-            network.update_all_neurons_learning()
-            network.update_pattern_similarity(n_pattern=True)
-            network.update_n_iteration()
-
-        # # learning loop
-        # network.calculate_next_weights(hopfield_network.patterns[0])
-        # network.update_weights(hopfield_network.next_theoretical_weights)
-        # network.calculate_next_weights(hopfield_network.patterns[0])
-        # network.update_all_neurons()
-        #
-        # network.update_pattern_similarity(n_pattern=0)
-        #
-        # for i in range(20):
-        #     network.learn()
-        #     network.update_all_neurons_learning()
-        #     network.update_pattern_similarity(n_pattern=0)
-
-        #################################
-        # #### END OF TESTING AREA #### #
-        #################################
+        network.learn_more_patterns()
+        print("\n\nim weights\n", network.weights)
+        print("\n\nim theoret\n", network.theoretical_weights_history[-1])
 
         pickle.dump(network, open(bkp_file, "wb"))
 
@@ -475,11 +470,11 @@ def main(force=False):
     plot.array_element_change(network.weights_history)
     # tools.array_element_change(network.theoretical_weights_history)
     # for i in range(len(network.theoretical_weights_history)-1):
-    #     tools.array_history_index(network.theoretical_weights_history,
-    #                              index=i+1, contour=False)
-    for i in range(len(network.weights_history)-1):
-        plot.array_history_index(network.weights_history,
-                                 index=i+1, contour=False)
+    #     plot.array_history_index(network.theoretical_weights_history,
+    #                              index=i+1, title="theoretical", contour=False)
+    # for i in range(len(network.weights_history)-1):
+    #     plot.array_history_index(network.weights_history,
+    #                              index=i+1, title="evolution", contour=False)
 
 
 if __name__ == "__main__":

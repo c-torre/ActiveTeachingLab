@@ -50,8 +50,8 @@ def present_weights(network):
     plt.savefig(os.path.join(FIG_FOLDER, "present_weights.pdf"))
 
 
-def array_history_index(array_history, index, contour=False):
-    assert index < len(array_history)
+def array_history_index(array_history, index, title, contour=False):
+    # assert index < len(array_history)
 
     fig, ax = plt.subplots()
 
@@ -60,7 +60,7 @@ def array_history_index(array_history, index, contour=False):
     im = ax.imshow(array_history[index])
     ax.set_aspect("auto")
 
-    ax.set_title(f"Weights (iter={index})")
+    ax.set_title(f"{title} weights (iter={index})")
     ax.set_xlabel("Neuron $i$")
     ax.set_ylabel("Neuron $j$")
 
@@ -71,9 +71,10 @@ def array_history_index(array_history, index, contour=False):
 
 
 def array_element_change(array_history, alpha=0.7):
-    assert len(array_history) > 0
+    # assert len(array_history) > 0
 
-    history = np.array(array_history)
+    # history = np.array(array_history)
+    history = array_history
     diff = np.diff(history, axis=0)
 
     fig, ax = plt.subplots()
@@ -96,7 +97,7 @@ def array_element_change(array_history, alpha=0.7):
 
 
 def theoretical_weights(network, index):
-    assert index < len(network.theoretical_weights_history)
+    # assert index < len(network.theoretical_weights_history)
 
     fig, ax = plt.subplots()
     # im = ax.contourf(network.theoretical_weights_history[index])  # fancy
