@@ -4,8 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.mplot3d import Axes3D
+from tqdm import tqdm
 
-FIG_FOLDER = 'fig'
+FIG_FOLDER = "fig"
 os.makedirs(FIG_FOLDER, exist_ok=True)
 
 
@@ -78,7 +79,7 @@ def array_element_change(array_history, alpha=0.7):
     fig, ax = plt.subplots()
 
     counter = 0
-    for j in range(diff.shape[1]):
+    for j in tqdm(range(diff.shape[1])):
         for k in range(diff.shape[2]):
             a = np.zeros(diff.shape[0])
             for i in range(diff.shape[0]):

@@ -1,12 +1,9 @@
 import os
 import pickle
 
-# from tqdm import tqdm
-import matplotlib.pyplot as plt
-# import matplotlib.pyplot as plt
 import numpy as np
 
-from tools import functions as tools
+import tools.functions as tools
 import tools.plot as plot
 
 
@@ -21,7 +18,7 @@ class Hopfield:
         forgotten per time step
     """
 
-    version = 1.0
+    version = 2.0
     bounds = ('learning_rate', 10**-7, 0.99), \
              ('forgetting_rate', 10**-7, 0.99),
 
@@ -380,7 +377,8 @@ class Hopfield:
     def simulate_learning(self, iterations, recalled_pattern):
 
         if self.p == 1:
-            self.calculate_next_theoretical_weights(self.patterns[self.first_p])
+            self.calculate_next_theoretical_weights(
+                self.patterns[self.first_p])
             self.update_all_neurons()
         else:
             # for p in range(self.p - 2):
@@ -413,14 +411,14 @@ def main(force=False):
         np.random.seed(123)
 
         network = Hopfield(
-            num_iterations=10,
-            num_neurons=5,
-            f=0.45,
-            p=1,
+            num_iterations=100,
+            num_neurons=100,
+            f=0.65,
+            p=10,
             first_p=0,
             inverted_fraction=0.51,
             learning_rate=0.001,
-            forgetting_rate=0.5
+            forgetting_rate=0.3
         )
 
         ##########################
@@ -429,12 +427,18 @@ def main(force=False):
 
         network.compute_all_theoretical_weights()
         network.compute_noise()
-        network.update_weights(network.theoretical_weights_history[-1])
-        network.update_all_neurons()
+        # network.update_weights(network.theoretical_weights_history[-2])
+        # network.update_all_neurons()
+        # network.update_weights(network.theoretical_weights_history[-1])
+        # network.update_all_neurons()
+        for i in range(len(network.theoretical_weights_history)):
+            network.update_weights(network.theoretical_weights_history[i])
+
+            network.update_all_neurons()
         network.update_pattern_similarity(n_pattern=True)
 
         for i in range(network.num_iterations):
-            network.forget(1000)
+            network.forget()
             network.update_all_neurons_learning()
             network.update_pattern_similarity(n_pattern=True)
             network.update_n_iteration()
