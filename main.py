@@ -46,52 +46,29 @@ class Hopfield:
         self.forgetting_rate = forgetting_rate
         assert (self.learning_rate and self.forgetting_rate) <= 1
 
-        # self.weights = np.zeros((self.num_neurons, self.num_neurons))
-        self.weights = np.random.random((self.num_neurons, self.num_neurons))
-        print("DEBUGGING: Weights initialized at random")
-        self.next_theoretical_weights = np.zeros_like(self.weights)
-        self.next_weights = np.zeros_like(self.weights)
-        # self.weights_history = [np.copy(self.weights)]
-        self.weights_history = np.zeros((self.num_iterations, self.num_neurons,
-                                         self.num_neurons))
-        # self.theoretical_weights_history = [np.copy(self.weights)]
-        self.theoretical_weights_history = np.zeros((self.p, self.num_neurons,
-                                                     self.num_neurons))
-        # self.weights_mean = []
-        self.weights_mean = np.zeros(self.num_iterations)
-
-        self.pattern_similarity = np.zeros((
-            self.p, self.num_iterations))
-
-        self.active_fraction = f
-
-        self.initial_currents = np.zeros(self.num_neurons)
-
         self.patterns = \
             np.random.choice([0, 1], p=[1 - self.f, self.f],
                              size=(self.p, self.num_neurons))
+        self.pattern_similarity = np.zeros((
+            self.p, self.num_iterations))
         print("\nPatterns:\n", self.patterns)
 
-        # self.currents = np.zeros((1, self.num_neurons), dtype=int)
+        self.weights = np.random.random((self.num_neurons, self.num_neurons))
+        self.next_weights = np.zeros_like(self.weights)
+        self.weights_history = np.zeros((self.num_iterations, self.num_neurons,
+                                         self.num_neurons))
+        self.weights_mean = np.zeros(self.num_iterations)
+
+        self.next_theoretical_weights = np.zeros_like(self.weights)
+        self.theoretical_weights = np.zeros((self.p, self.num_neurons,
+                                             self.num_neurons))
+
         self.currents = np.zeros((self.num_iterations, self.num_neurons),
                                  dtype=int)
-        self.patterns_evolution = None
-
-        self.question_pattern = np.zeros(self.num_neurons)
 
     ###################
     # NETWORK METHODS #
     ###################
-
-    def _initialize_currents(self):
-        """Initial currents are set to the first distorted pattern."""
-
-        self.currents = np.copy(tools.distort_pattern(
-            self.patterns[self.first_p],
-            self.inverted_fraction)
-        )
-
-        # print("\nInitial currents:\n", self.currents)
 
     def update_weights_history(self):
         self.weights_history[self.n_iteration] = np.copy(self.weights)
@@ -101,9 +78,9 @@ class Hopfield:
         Adds the current theoretical weights the the current ones and appends
         to the history list.
         """
-        self.next_theoretical_weights += self.theoretical_weights_history[-1]
+        self.next_theoretical_weights += self.theoretical_weights[-1]
 
-        self.theoretical_weights_history[p] =\
+        self.theoretical_weights[p] =\
             np.copy(self.next_theoretical_weights)
 
     def calculate_next_theoretical_weights(self, pattern, p):
@@ -111,7 +88,7 @@ class Hopfield:
         Calculate the weights after the presentation of a new pattern but does
         not change the current weights of the network.
         """
-        for i in (range(self.num_neurons)):  # tqdm
+        for i in (range(self.num_neurons)):
             for j in range(self.num_neurons):
                 if j >= i:
                     break
@@ -132,16 +109,6 @@ class Hopfield:
 
     def update_weights(self, weights):
         self.weights += weights
-
-    def compute_weights_all_patterns(self):
-        """Testing method"""
-        print(f"\n...Computing weights for all patterns...\n")
-
-        for p in range(self.p):
-            self.calculate_next_theoretical_weights(self.patterns[p], p)
-            self.update_weights(self.next_theoretical_weights)
-
-        print("Done!")
 
     def compute_noise(self):
         if self.n_iteration > 50 and self.num_neurons > 100:
@@ -164,13 +131,30 @@ class Hopfield:
         output 1. Otherwise, you output 0
         :param neuron: int neuron number
         """
-        # dot_product = np.dot(self.weights[neuron], self.currents[-2])
         dot_product = np.dot(self.weights[neuron],
                              self.currents[self.n_iteration - 1])
 
         self.currents[self.n_iteration, neuron] =\
             tools.heaviside_activation(
                 dot_product + self.noise[neuron, self.n_iteration])
+
+    def _update_pattern_similarity(self):
+        """
+        Compute the last pattern similarity and append it to the network
+        history.
+
+        The problem pattern is either computed from binarizing the given int
+        or taken from the stored p patterns of the network.
+
+        :param item: int, item id
+        :param n_pattern: array_like
+        """
+
+        for p in range(self.p):
+            self.pattern_similarity[p, self.n_iteration] = \
+                tools.compute_pattern_similarity(
+                    self.currents[self.n_iteration],
+                    self.patterns[p])
 
     def update_all_currents(self):
         """
@@ -184,83 +168,10 @@ class Hopfield:
                                                self.num_neurons,
                                                replace=False)
 
-        # self.currents = np.vstack((self.currents, np.zeros(self.num_neurons)))
-
         for neuron in neuron_update_order:
             self._update_current(neuron)
 
-    def _compute_patterns_evolution(self):
-
-        for p in range(self.p):
-            similarity = np.sum(self.currents[-1] == self.patterns[p])
-            self.patterns_evolution = \
-                np.vstack((self.patterns_evolution, similarity))
-
-        self.patterns_evolution = self.patterns_evolution.T
-        self.patterns_evolution = self.patterns_evolution[0, 1:]
-
-    def _find_attractor(self):
-        """
-        If an update does not change any of the node values, the
-        hopfield_network rests at an attractor and updating stops.
-        """
-        tot = 1
-
-        # np.sum(self.currents - self.last_currents) != 0:
-        while (self.currents[-1, :] != self.currents[-2, :]).all() or tot < 2:
-            self.update_all_currents()
-            self._compute_patterns_evolution()
-            tot += 1
-            print(f"\nUpdate {tot} finished.\n")
-
-        attractor = np.int_(np.copy(self.currents[-1]))
-
-        print(f"\nFinished as attractor {attractor} after {tot} "
-              f"node value updates.\n")
-
-    def update_pattern_similarity(self, item=None, n_pattern=None):
-        """
-        Compute the last pattern similarity and append it to the network
-        history.
-
-        The problem pattern is either computed from binarizing the given int
-        or taken from the stored p patterns of the network.
-
-        :param item: int, item id
-        :param n_pattern: array_like
-        """
-        assert (item is not None and n_pattern is None) \
-            or (n_pattern is not None and item is None)
-        if item is not None:
-            bin_item = tools.binarize_item(item, self.num_neurons)
-        # elif n_pattern is not None:
-        #     bin_item = self.patterns[n_pattern]
-        elif n_pattern is not None:
-            bin_item = self.patterns
-        else:
-            raise Exception("Item or n_pattern should be given")
-
-        for p in range(self.p):
-            self.pattern_similarity[p, self.n_iteration] =\
-                tools.compute_pattern_similarity(self.currents[-1],
-                                                 bin_item[p])
-
-        # similarity = tools.compute_pattern_similarity(
-        #     self.currents[-1],
-        #     bin_item
-        # )
-        #
-        # self.pattern_similarity.append(similarity)
-
-    def simulate(self):
-        # assert self.patterns
-        # assert self.num_neurons == self.patterns[0].size
-
-        # self._initialize()
-        self.compute_weights_all_patterns()
-        self._initialize_currents()
-        self.update_all_currents()
-        self._find_attractor()
+        self._update_pattern_similarity()
 
     def update_n_iteration(self):
         self.n_iteration += 1
@@ -297,15 +208,15 @@ class Hopfield:
         :param item:
         :param time:
         """
-        self.next_weights = (self.theoretical_weights_history[index]
+        self.next_weights = (self.theoretical_weights[index]
                              - self.weights) * self.learning_rate
 
         self.update_weights(self.next_weights)
 
-        self.weights_mean[self.self.n_iteration] =\
-            -np.mean(self.next_theoretical_weights) + np.mean(self.weights)
+        self.weights_mean[self.self.n_iteration] = \
+            np.mean(self.weights) - np.mean(self.next_theoretical_weights)
 
-        self.weights_history[self.n_iteration] = np.copy(self.weights)
+        self.update_weights_history()
 
     def unlearn(self):
         pass
@@ -323,7 +234,8 @@ class Hopfield:
 
         self.weights_mean[self.n_iteration] =\
             np.mean(self.weights) - np.mean(self.next_theoretical_weights)
-        self.weights_history[self.n_iteration] = np.copy(self.weights)
+
+        self.update_weights_history()
 
     def learn_from_naive(self):
         print("DEBUG: I'm learning for theoretical weights index -1!")
@@ -331,10 +243,8 @@ class Hopfield:
         self.compute_noise()
         self.update_all_currents()
         for i in range(self.num_iterations):
-            # print(self.weights)
             self.learn(-1)
             self.update_all_currents()
-            self.update_pattern_similarity(n_pattern=True)
             self.update_n_iteration()
 
     def learn_more_patterns(self):
@@ -343,27 +253,26 @@ class Hopfield:
 
         self.compute_all_theoretical_weights()
         self.compute_noise()
-        self.update_weights(self.theoretical_weights_history[-2])
+        self.update_weights(self.theoretical_weights[-2])
         self.update_all_currents()
         for i in range(self.num_iterations):
-            # print(self.weights)
-            self.learn(-1)
+            # self.learn(-1)
             self.update_all_currents()
-            self.update_pattern_similarity(n_pattern=True)
             self.update_n_iteration()
 
     def test_forgetting(self):
         self.compute_all_theoretical_weights()
         self.compute_noise()
-        for p in range(self.p, 0, -1):
-            self.update_weights(self.theoretical_weights_history[-p])
-            self.update_all_currents()
-        # self.update_weights(self.theoretical_weights_history[-1])
+        self.update_weights(self.theoretical_weights[-1])
+        self.update_all_currents()
+        # for p in range(self.p, 0, -1):
+        #     self.update_weights(self.theoretical_weights[-p])
+        #     self.update_all_currents()
+        # self.update_weights(self.theoretical_weights[-1])
         # self.update_all_currents()
         for i in range(self.num_iterations):
             self.forget()
             self.update_all_currents()
-            self.update_pattern_similarity(n_pattern=True)
             self.update_n_iteration()
 
 
@@ -378,14 +287,14 @@ def main(force=False):
         np.random.seed(1234)
 
         network = Hopfield(
-            num_iterations=10,
-            num_neurons=50,
+            num_iterations=50,
+            num_neurons=10,
             f=0.51,
-            p=5,
+            p=1,
             first_p=0,
             inverted_fraction=0.51,
             learning_rate=0.1,
-            forgetting_rate=0.3
+            forgetting_rate=0.5
         )
 
         network.test_forgetting()
@@ -397,15 +306,15 @@ def main(force=False):
         network = pickle.load(open(bkp_file, "rb"))
 
     plot.mean_weights(network)
-    plot.pattern_similarity(network)
-    plot.currents(network)
+    # plot.pattern_similarity(network)
+    # plot.currents(network)
     # tools.present_weights(network)
     # tools.noise(network)
     # tools.energy(network)
     plot.array_element_change(network.weights_history)
-    # tools.array_element_change(network.theoretical_weights_history)
-    # for i in range(len(network.theoretical_weights_history)-1):
-    #     plot.array_history_index(network.theoretical_weights_history,
+    # tools.array_element_change(network.theoretical_weights)
+    # for i in range(len(network.theoretical_weights)-1):
+    #     plot.array_history_index(network.theoretical_weights,
     #                              index=i+1, title="theoretical", contour=False)
     # for i in range(len(network.weights_history)-1):
     plot.array_history_index(

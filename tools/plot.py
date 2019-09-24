@@ -51,8 +51,6 @@ def present_weights(network):
 
 
 def array_history_index(array_history, title, contour=False):
-    # assert index < len(array_history)
-
 
     n_subplot = len(array_history)
 
@@ -65,23 +63,18 @@ def array_history_index(array_history, title, contour=False):
         if contour:
             ax.contourf(array_history[index])
         im = ax.imshow(array_history[index])
-        ax.set_aspect("auto")
 
-        ax.set_title(f"{title} weights (iter={index})")
-        ax.set_xlabel("Neuron $i$")
-        ax.set_ylabel("Neuron $j$")
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.axis('off')
 
-        plt.colorbar(im, ax=ax)
-
-    plt.tight_layout()
+    plt.suptitle(f"{title} weights")
 
     plt.savefig(os.path.join(FIG_FOLDER, "array_history_index.pdf"))
 
 
 def array_element_change(array_history, alpha=0.7):
-    # assert len(array_history) > 0
 
-    # history = np.array(array_history)
     history = array_history
     diff = np.diff(history, axis=0)
 
@@ -96,17 +89,16 @@ def array_element_change(array_history, alpha=0.7):
 
     ax.set_title("Matrix element change")
     ax.set_xlabel("Iteration")
-    ax.set_xticks(np.arange(diff.shape[0]))
+    # ax.set_xticks(np.arange(diff.shape[0]))
     ax.set_ylabel("Point value change")
 
     plt.savefig(os.path.join(FIG_FOLDER, "array_element_change.pdf"))
 
 
 def theoretical_weights(network, index):
-    # assert index < len(network.theoretical_weights_history)
 
     fig, ax = plt.subplots()
-    # im = ax.contourf(network.theoretical_weights_history[index])  # fancy
+    # im = ax.contourf(network.theoretical_weights[index])  # fancy
     im = ax.imshow(network.theoretical_weights_history[index])
     ax.set_aspect("auto")
 
@@ -142,7 +134,7 @@ def pattern_similarity(network):
 
     ax.set_title("Pattern similarity")
     ax.set_xlabel("Iteration")
-    ax.set_ylabel("Pattern match$^2$")
+    ax.set_ylabel("Pattern match$^2$ CHANGEEEEE")
     ax.set_ylim((-0.1, 1.1))
 
     plt.savefig(os.path.join(FIG_FOLDER, "pattern_similarity.pdf"))

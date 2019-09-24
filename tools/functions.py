@@ -55,7 +55,7 @@ def compute_pattern_similarity(pattern_0, pattern_1):
     """
     assert pattern_0.size == pattern_1.size
     match = np.sum(pattern_0 == pattern_1)
-    return (match / pattern_0.size)**2
+    return match / pattern_0.size
 
 
 def modulated_gaussian_noise(variance, multiplier):
