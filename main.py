@@ -407,9 +407,9 @@ def main(force=False):
     # for i in range(len(network.theoretical_weights_history)-1):
     #     plot.array_history_index(network.theoretical_weights_history,
     #                              index=i+1, title="theoretical", contour=False)
-    # for i in range(len(network.weights_history)-1):
-    #     plot.array_history_index(network.weights_history,
-    #                              index=i+1, title="evolution", contour=False)
+    for i in range(len(network.weights_history)-1):
+        plot.array_history_index(network.weights_history,
+                                 index=i+1, title="evolution", contour=False)
 
 
 if __name__ == "__main__":
