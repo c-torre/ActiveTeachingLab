@@ -50,23 +50,31 @@ def present_weights(network):
     plt.savefig(os.path.join(FIG_FOLDER, "present_weights.pdf"))
 
 
-def array_history_index(array_history, index, title, contour=False):
+def array_history_index(array_history, title, contour=False):
     # assert index < len(array_history)
 
-    fig, ax = plt.subplots()
 
-    if contour:
-        im = ax.contourf(array_history[index])
-    im = ax.imshow(array_history[index])
-    ax.set_aspect("auto")
+    n_subplot = len(array_history)
 
-    ax.set_title(f"{title} weights (iter={index})")
-    ax.set_xlabel("Neuron $i$")
-    ax.set_ylabel("Neuron $j$")
+    fig, axes = plt.subplots(ncols=n_subplot)
+
+    for index in range(n_subplot):
+
+        ax = axes[index]
+
+        if contour:
+            ax.contourf(array_history[index])
+        im = ax.imshow(array_history[index])
+        ax.set_aspect("auto")
+
+        ax.set_title(f"{title} weights (iter={index})")
+        ax.set_xlabel("Neuron $i$")
+        ax.set_ylabel("Neuron $j$")
+
+        plt.colorbar(im, ax=ax)
 
     plt.tight_layout()
 
-    fig.colorbar(im, ax=ax)
     plt.savefig(os.path.join(FIG_FOLDER, "array_history_index.pdf"))
 
 

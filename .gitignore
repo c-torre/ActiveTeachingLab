@@ -125,4 +125,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# Pycharm
 .idea/
+
+# Backup and fig folders
+bkp/
+fig/
