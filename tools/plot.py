@@ -79,14 +79,12 @@ def array_element_change(array_history, alpha=0.7):
 
     fig, ax = plt.subplots()
 
-    counter = 0
     for j in tqdm(range(diff.shape[1])):
         for k in range(diff.shape[2]):
             a = np.zeros(diff.shape[0])
             for i in range(diff.shape[0]):
                 a[i] = diff[i, j, k]
             ax.plot(a, alpha=alpha)
-            counter += 1
 
     ax.set_title("Matrix element change")
     ax.set_xlabel("Iteration")
