@@ -61,7 +61,7 @@ class Hopfield:
 
         self.next_theoretical_weights = np.zeros_like(self.weights)
         self.theoretical_weights = np.zeros((self.p, self.num_neurons,
-                                             self.num_neurons))
+                                             self.num_neurons), dtype=int)
 
         self.currents = np.zeros((self.num_iterations, self.num_neurons),
                                  dtype=int)
@@ -94,7 +94,7 @@ class Hopfield:
                     break
 
                 self.next_theoretical_weights[i, j] += (2 * pattern[i] - 1) \
-                    * (2 * pattern[j] - 1) \
+                    * (2 * pattern[j] - 1)
 
         self.next_theoretical_weights += self.next_theoretical_weights.T
         self.update_theoretical_weights_history(p)
@@ -236,6 +236,7 @@ class Hopfield:
             np.mean(self.weights) - np.mean(self.next_theoretical_weights)
 
         self.update_weights_history()
+        # print(self.weights)
 
     def learn_from_naive(self):
         print("DEBUG: I'm learning for theoretical weights index -1!")
@@ -265,6 +266,7 @@ class Hopfield:
         self.compute_noise()
         self.update_weights(self.theoretical_weights[-1])
         self.update_all_currents()
+        plot.present_weights(self)
         # for p in range(self.p, 0, -1):
         #     self.update_weights(self.theoretical_weights[-p])
         #     self.update_all_currents()
@@ -284,13 +286,13 @@ def main(force=False):
 
     if not os.path.exists(bkp_file) or force:
 
-        np.random.seed(1234)
+        np.random.seed(12345)
 
         network = Hopfield(
             num_iterations=50,
             num_neurons=10,
             f=0.51,
-            p=1,
+            p=2,
             first_p=0,
             inverted_fraction=0.51,
             learning_rate=0.1,
@@ -298,6 +300,7 @@ def main(force=False):
         )
 
         network.test_forgetting()
+        print(network.theoretical_weights)
 
         pickle.dump(network, open(bkp_file, "wb"))
 
@@ -308,7 +311,7 @@ def main(force=False):
     plot.mean_weights(network)
     # plot.pattern_similarity(network)
     # plot.currents(network)
-    # tools.present_weights(network)
+    plot.present_weights(network)
     # tools.noise(network)
     # tools.energy(network)
     plot.array_element_change(network.weights_history)

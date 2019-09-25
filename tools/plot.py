@@ -50,7 +50,25 @@ def present_weights(network):
     plt.savefig(os.path.join(FIG_FOLDER, "present_weights.pdf"))
 
 
-def array_history_index(array_history, title, contour=False):
+def array(array_like, title, color_bar=True, contour=False):
+
+    fig, ax = plt.subplots()
+
+    im = plt.imshow(array_like)
+    ax.set_aspect("auto")
+    ax.set_title(f"{title}")
+
+    plt.tight_layout()
+
+    if color_bar:
+        fig.colorbar(im, ax=ax)
+    if contour:
+        ax.contourf(array_like)
+
+    plt.savefig(os.path.join(FIG_FOLDER, f"{title}.pdf"))
+
+
+def array_history_index(array_history, title, color_bar=False, contour=False):
 
     n_subplot = len(array_history)
 
@@ -67,10 +85,12 @@ def array_history_index(array_history, title, contour=False):
         ax.set_xticks([])
         ax.set_yticks([])
         ax.axis('off')
+        if color_bar:
+            plt.colorbar(im, ax=ax)
 
-    plt.suptitle(f"{title} weights")
+    plt.suptitle(f"{title}")
 
-    plt.savefig(os.path.join(FIG_FOLDER, "array_history_index.pdf"))
+    plt.savefig(os.path.join(FIG_FOLDER, f"{title}.pdf"))
 
 
 def array_element_change(array_history, alpha=0.7):
