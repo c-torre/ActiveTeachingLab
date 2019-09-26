@@ -208,6 +208,7 @@ class Hopfield:
         :param item:
         :param time:
         """
+
         self.next_weights = (self.theoretical_weights[index]
                              - self.weights) * self.learning_rate
 

@@ -150,7 +150,6 @@ def main(force=False):
             p=2,
             f=0.51,
             first_p=0,
-            inverted_fraction=0.51,
             learning_rate=0.1,
             forgetting_rate=0.5
         )
