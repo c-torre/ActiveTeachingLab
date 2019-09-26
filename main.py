@@ -88,7 +88,7 @@ class Hopfield:
         Calculate the weights after the presentation of a new pattern but does
         not change the current weights of the network.
         """
-        for i in (range(self.num_neurons)):
+        for i in range(self.num_neurons):
             for j in range(self.num_neurons):
                 if j >= i:
                     break

@@ -68,7 +68,7 @@ class Hopfield:
             self.p, self.num_iterations))
         print("\nPatterns:\n", self.patterns)
 
-        self.weights = np.random.random((self.num_neurons, self.num_neurons))
+        self.weights = np.zeros((self.num_neurons, self.num_neurons))
         self.next_weights = np.zeros_like(self.weights)
         self.weights_history = np.zeros((self.num_iterations, self.num_neurons,
                                          self.num_neurons))
@@ -90,8 +90,23 @@ class Hopfield:
         https://neuronaldynamics.epfl.ch/
         """
 
-        neurons_per_p = 8.33
-        self.num_neurons = int(np.ceil(neurons_per_p * self.p))
+        neurons_per_p = 9  # Approximated as np.ceil(8.33)
+        self.num_neurons = int(neurons_per_p * self.p)
+
+    def _randomize_weights(self):
+        """
+        Randomizes weights as int -1, 0 or 1.
+        When i == j, element is left at 0.
+        """
+
+        for i in range(self.num_neurons):
+            for j in range(self.num_neurons):
+                if j == i:
+                    break
+                self.weights[i, j] = \
+                    np.random.choice([-1, 0, 1],
+                                     size=(self.num_neurons, self.num_neurons))
+        print(self.weights)
 
     def _calculate_all_target_weights(self):
         """
@@ -100,7 +115,7 @@ class Hopfield:
         """
 
         for p in range(self.p):
-            for i in (range(self.num_neurons)):
+            for i in range(self.num_neurons):
                 for j in range(self.num_neurons):
                     if j >= i:
                         break
@@ -125,10 +140,9 @@ class Hopfield:
 
         """
 
+        self._randomize_weights()
         self._calculate_all_target_weights()
-        print("remove", self.all_target_weights)
         self._combine_target_weights()
-        print("remove", self.combined_target_weights)
 
 
 def main(force=False):
