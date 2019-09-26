@@ -102,15 +102,12 @@ class Hopfield:
         for i in range(self.num_neurons):
             for j in range(self.num_neurons):
                 if j == i:
-                    break
-                self.weights[i, j] = \
-                    np.random.choice([-1, 0, 1],
-                                     size=(self.num_neurons, self.num_neurons))
-        print(self.weights)
+                    continue
+                self.weights[i, j] = np.random.choice([-1, 0, 1])
 
-    def _calculate_all_target_weights(self):
+    def _compute_all_target_weights(self):
         """
-        Calculates the weights array for each of the patterns, updating the
+        Computes the weights array for each of the patterns, updating the
         (index, i, j) target weights array.
         """
 
@@ -135,14 +132,32 @@ class Hopfield:
         assert np.amax(self.combined_target_weights) == self.p and \
             np.amin(self.combined_target_weights) == -self.p
 
+    def compute_noise(self):
+        """
+        Computes the Gaussian noise value for every neuron and iteration.
+        """
+        if self.n_iteration > 50 and self.num_neurons > 100:
+            print("Computing modulated Gaussian noise...")
+
+        # for i in range(self.num_neurons):
+        #     for j in range(self.num_iterations):
+        #         self.noise[i, j] = tools.modulated_gaussian_noise(
+        #             self.noise_variance, self.noise_modulation
+        #         )
+
+                self.noise[i, j] = tools.modulated_gaussian_noise(
+                    self.noise_variance, self.noise_modulation
+                )
+
     def initialize(self):
         """
 
         """
 
         self._randomize_weights()
-        self._calculate_all_target_weights()
+        self._compute_all_target_weights()
         self._combine_target_weights()
+        self.compute_noise()
 
 
 def main(force=False):
@@ -190,6 +205,11 @@ def main(force=False):
     # for i in range(len(network.weights_history)-1):
 
     # Testing plots
+    plot.array(
+        array_like=network.weights,
+        title="weights",
+    )
+
     plot.array_history_index(
         array_history=network.all_target_weights,
         title="all_target_weights",
