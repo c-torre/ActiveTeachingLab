@@ -19,10 +19,10 @@ class Hopfield:
         fully connected, and at the same time serve as input and output.
         If not given or 0, it will be set within the memory capacity limits for
         the number of memories.
-    :param learning_rate: float, proportion of the theoretical weights learn
-        per time step
-    :param forgetting_rate: float, proportion of the theoretical weights
-        forgotten per time step
+    :param learning_rate: float
+        proportion of the theoretical weights learnt per time step.
+    :param forgetting_rate: float
+        proportion of the theoretical weights forgotten per time step.
     """
 
     version = 3.0
@@ -83,11 +83,12 @@ class Hopfield:
         self.combined_target_weights = np.zeros_like(self.weights)
 
         # Currents
-        # self.currents = np.zeros((self.num_iterations, self.num_neurons),
-        #                          dtype=int)
-        self.currents = np.random.choice([0, 1], p=[1 - self.f, self.f],
-                                         size=(self.num_iterations,
-                                               self.num_neurons))
+        self.currents = np.zeros((self.num_iterations, self.num_neurons),
+                                 dtype=int)
+
+    ###################
+    # Network methods #
+    ###################
 
     def _auto_num_neurons(self):
         """
@@ -149,9 +150,6 @@ class Hopfield:
 
         print("Computing modulated Gaussian noise...")
 
-        if self.n_iteration > 50 and self.num_neurons > 100:
-            print("Computing modulated Gaussian noise...")
-
         for i in np.nditer(self.noise, op_flags=["readwrite"]):
             i += tools.modulated_gaussian_noise(
                     self.noise_variance, self.noise_modulation)
@@ -170,7 +168,18 @@ class Hopfield:
                 tools.compute_pattern_similarity(
                     self.currents[self.n_iteration], self.patterns[p])
 
-    def _update_current(self, neuron):
+    def _randomize_init_currents(self):
+        """
+        Sets the network currents to random values according to sparsity
+        This avoids that the first currents update is driven only by noise.
+        """
+
+        self.currents[0] = np.random.choice([0, 1], p=[1 - self.f, self.f],
+                                            size=self.num_neurons)
+
+        print("\nInitial currents:\n", self.currents[0])
+
+    def _update_current(self, neuron, noise=True):
         """
         All neurons but the one updating input values.
         Therefore, currents are calculated a weighed sum using weights + noise.
@@ -184,16 +193,24 @@ class Hopfield:
         dot_product = np.dot(self.weights[neuron],
                              self.currents[self.n_iteration - 1])
 
+        if not noise:
+            self.noise = np.zeros_like(self.noise)
+
         # Unit step function
         self.currents[self.n_iteration, neuron] = \
             tools.heaviside_activation(
                 dot_product + self.noise[neuron, self.n_iteration])
 
-    def update_all_currents(self):
+    def _update_n_iteration(self):
+        self.n_iteration += 1
+
+    def _compute_iter_currents(self):
         """
         Neurons are updated update in random order.
         The full network is updated before the same neuron gets updated again.
+
         Pattern similarity is computed afterwards.
+        Updates the iteration number to the next one.
         """
 
         # Decide random order
@@ -207,23 +224,19 @@ class Hopfield:
             self._update_current(n)
 
         self._compute_pattern_similarity()
+        self._update_n_iteration()
 
-    def initialize(self):
-        """
+    def _compute_all_currents(self):
+        """Compute all currents for all iterations"""
 
-        """
+        print("Computing currents...")
 
-        self._randomize_weights()
-        self._compute_all_target_weights()
-        self._combine_target_weights()
-        self._compute_noise()
-        self.update_all_currents()  # fix me
-        print(self.currents)
-        self.pattern_similarity_rnd_currents()
+        for _ in range(self.num_iterations):
+            self._compute_iter_currents()
 
-    #################
-    # Lab functions #
-    #################
+    ########################
+    # Experimental methods #
+    ########################
 
     def pattern_similarity_rnd_currents(self):
         """
@@ -245,15 +258,69 @@ class Hopfield:
                     self.patterns[p], currents[t])
 
         mean_similarity = np.mean(pattern_similarity)
+
         print(f"\nPattern similarity of random currents is: {mean_similarity}")
 
         return mean_similarity
 
+    ###########################
+    # Active teaching methods #
+    ###########################
+
+    def learn(self):
+        """
+        The normalized difference of means calculated at every time step.
+        Also includes the new weights array to the weights history.
+        """
+
+        next_weights = (self.combined_target_weights - self.weights)\
+            * self.learning_rate
+
+        self.weights[self.n_iteration] = np.copy(next_weights)
+
+        # For plotting
+        self.weights_history[self.n_iteration] = np.copy(self.weights)
+
+        self.weights_mean[self.n_iteration] = \
+            tools.calculate_arrays_mean_difference(
+                self.combined_target_weights, self.weights)
+
+    def fully_learn(self):
+        """Call learn method for $n$ iterations"""
+
+        print("Learning for all time steps....")
+
+        for i in range(self.num_iterations):
+            self.learn()
+
+    #########
+    # START #
+    #########
+
+    def initialize(self):
+        """
+        """
+
+        self._randomize_weights()
+        # ADD CUSTOM WEIGHTS v HERE v
+
+        # ^ HERE ^
+        self._compute_all_target_weights()
+        self._combine_target_weights()
+        self._compute_noise()
+        self._randomize_init_currents()
+
+        # ADD TEACHING METHODS v HERE v
+
+        # ^ HERE ^
+
+        self._compute_all_currents()
+
+        # self.pattern_similarity_rnd_currents()  # Experimental function
+
 
 def main(force=False):
-    """
-    Instantiate Init(), Teacher() and Hopfield(), perform operations and plot.
-    """
+    """Instantiate Hopfield(), perform operations and plot"""
 
     bkp_file = f"bkp/hopfield.p"
 
@@ -313,6 +380,8 @@ def main(force=False):
     plot.multi_line(
         array_like=network.noise,
         title="noise")
+
+    plot.currents(network)
 
 
 if __name__ == '__main__':

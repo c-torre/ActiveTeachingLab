@@ -72,6 +72,19 @@ def modulated_gaussian_noise(variance, multiplier):
         * multiplier
 
 
+def calculate_arrays_mean_difference(array_like_0, array_like_1):
+    """
+    Difference of the element-wise mean of both input arrays
+
+    :param array_like_0: array_like
+    :param array_like_1: array_like
+
+    :return:
+    """
+
+    return print(type(np.mean(array_like_0) - np.mean(array_like_1)))
+
+
 # def present_pattern(self, item):
 #     kanji = item["kanji"]
 #     meaning = item["meaning"]
