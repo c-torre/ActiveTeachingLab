@@ -48,7 +48,7 @@ def heaviside_activation(x):
 
 def compute_pattern_similarity(pattern_0, pattern_1):
     """
-    Returns the  proportion of bits that match in value and position
+    Returns the proportion of bits that match in value and position
     in both given patterns with respect to the total number of neurons.
 
     :param pattern_0: array_like, dtype=bool
