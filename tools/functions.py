@@ -9,6 +9,7 @@ def binarize_item(item, num_neurons):
     :param num_neurons: int, network number of neurons
     :return: array_like, dtype=int (bin)
     """
+
     question_array = np.array([item])
     bin_item = ((question_array[:, None]
                  & (1 << np.arange(8))) > 0).astype(int)
@@ -41,18 +42,20 @@ def distort_pattern(pattern, proportion):
 
 def heaviside_activation(x):
     """Unit step function"""
+
     return int(x >= 0)
 
 
 def compute_pattern_similarity(pattern_0, pattern_1):
     """
-    Returns the *squared* proportion of bits that match in value and position
+    Returns the  proportion of bits that match in value and position
     in both given patterns with respect to the total number of neurons.
 
     :param pattern_0: array_like, dtype=bool
     :param pattern_1: array_like, dtype=bool
-    :return: float, similarity_score
+    :return: float
     """
+
     assert pattern_0.size == pattern_1.size
     match = np.sum(pattern_0 == pattern_1)
     return match / pattern_0.size
@@ -64,6 +67,7 @@ def modulated_gaussian_noise(variance, multiplier):
 
     :return: int, noise_value
     """
+
     return np.random.normal(loc=0, scale=variance ** 0.5)\
         * multiplier
 

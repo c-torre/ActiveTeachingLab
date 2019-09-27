@@ -35,6 +35,7 @@ class Hopfield:
 
         # super().__init__(**kwargs)
 
+        # Basic parameters
         self.num_iterations = num_iterations
         self.n_iteration = 0
 
@@ -53,31 +54,35 @@ class Hopfield:
         self.f = f
         self.first_p = first_p
 
+        # Noise
         self.noise_variance = noise_variance
         self.noise_modulation = noise_modulation
-        self.noise = np.zeros((num_neurons, num_iterations))
+        self.noise = np.zeros((self.num_neurons, self.num_iterations))
 
+        # Memory parameters
         self.learning_rate = learning_rate
         self.forgetting_rate = forgetting_rate
         assert (self.learning_rate and self.forgetting_rate) <= 1
 
-        self.patterns = \
-            np.random.choice([0, 1], p=[1 - self.f, self.f],
-                             size=(self.p, self.num_neurons))
-        self.pattern_similarity = np.zeros((
-            self.p, self.num_iterations))
+        # Patterns
+        self.patterns = np.random.choice([0, 1], p=[1 - self.f, self.f],
+                                         size=(self.p, self.num_neurons))
+        self.pattern_similarity = np.zeros((self.p, self.num_iterations))
         print("\nPatterns:\n", self.patterns)
 
+        # Weights
         self.weights = np.zeros((self.num_neurons, self.num_neurons))
         self.next_weights = np.zeros_like(self.weights)
         self.weights_history = np.zeros((self.num_iterations, self.num_neurons,
                                          self.num_neurons))
         self.weights_mean = np.zeros(self.num_iterations)
 
+        # Target weights
         self.all_target_weights = np.zeros((self.p, self.num_neurons,
                                             self.num_neurons), dtype=int)
         self.combined_target_weights = np.zeros_like(self.weights)
 
+        # Currents
         self.currents = np.zeros((self.num_iterations, self.num_neurons),
                                  dtype=int)
 
@@ -132,22 +137,65 @@ class Hopfield:
         assert np.amax(self.combined_target_weights) == self.p and \
             np.amin(self.combined_target_weights) == -self.p
 
-    def compute_noise(self):
+    def _compute_noise(self):
         """
         Computes the Gaussian noise value for every neuron and iteration.
         """
         if self.n_iteration > 50 and self.num_neurons > 100:
             print("Computing modulated Gaussian noise...")
 
-        # for i in range(self.num_neurons):
-        #     for j in range(self.num_iterations):
-        #         self.noise[i, j] = tools.modulated_gaussian_noise(
-        #             self.noise_variance, self.noise_modulation
-        #         )
+        for i in np.nditer(self.noise, op_flags=["readwrite"]):
+            i += tools.modulated_gaussian_noise(
+                    self.noise_variance, self.noise_modulation)
 
-                self.noise[i, j] = tools.modulated_gaussian_noise(
-                    self.noise_variance, self.noise_modulation
-                )
+    def _update_pattern_similarity(self):
+        """
+        Compute the last pattern similarity and append it to the network
+        history. NONOOONONONOONOONONONONONONONONONONONOONONONONONONONONO
+
+        The problem pattern is either computed from binarizing the given int
+        or taken from the stored p patterns of the network.
+        """
+
+        for p in range(self.p):
+            self.pattern_similarity[p, self.n_iteration] = \
+                tools.compute_pattern_similarity(
+                    self.currents[self.n_iteration], self.patterns[p])
+
+    def _update_current(self, neuron):
+        """
+        If you are updating one node of a Hopfield hopfield_network, then the
+        values of
+        all the other nodes are input values, and the weights from those nodes
+        to the updated node as the weights.
+        In other words, first you do a weighted sum of the inputs from the
+        other nodes, then if that value is greater than or equal to 0, you
+        output 1. Otherwise, you output 0
+        :param neuron: int neuron number
+        """
+        dot_product = np.dot(self.weights[neuron],
+                             self.currents[self.n_iteration - 1])
+
+        self.currents[self.n_iteration, neuron] = \
+            tools.heaviside_activation(
+                dot_product + self.noise[neuron, self.n_iteration])
+
+    def update_all_currents(self):
+        """
+        Neurons are updated update in random order as described by Hopfield.
+        The full hopfield_network should be updated before the same node gets
+        updated again.
+        """
+
+        values = np.arange(0, self.num_neurons, 1)
+        neuron_update_order = np.random.choice(values,
+                                               self.num_neurons,
+                                               replace=False)
+
+        for neuron in neuron_update_order:
+            self._update_current(neuron)
+
+        self._update_pattern_similarity()
 
     def initialize(self):
         """
@@ -157,7 +205,7 @@ class Hopfield:
         self._randomize_weights()
         self._compute_all_target_weights()
         self._combine_target_weights()
-        self.compute_noise()
+        self._compute_noise()
 
 
 def main(force=False):
@@ -207,8 +255,7 @@ def main(force=False):
     # Testing plots
     plot.array(
         array_like=network.weights,
-        title="weights",
-    )
+        title="weights")
 
     plot.array_history_index(
         array_history=network.all_target_weights,
@@ -220,6 +267,10 @@ def main(force=False):
                array_like=network.combined_target_weights,
                title="combined_target_weights",
                contour=False)
+
+    plot.multi_line(
+        array_like=network.noise,
+        title="noise")
 
 
 if __name__ == '__main__':

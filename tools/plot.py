@@ -183,17 +183,13 @@ def energy(network):
     plt.savefig(os.path.join(FIG_FOLDER, "energy.pdf"))
 
 
-def noise(network):
+def multi_line(array_like, title):
 
     fig, ax = plt.subplots()
 
-    neurons_noise = network.noise
+    for n in array_like:
+        ax.plot(n, linewidth=0.5, alpha=0.9)
 
-    for n_neuron in neurons_noise:
-        ax.plot(n_neuron, linewidth=0.5, alpha=0.9)
+    ax.set_title(f"{title}")
 
-    ax.set_title("Noise")
-    ax.set_xlabel("Iterations")
-    ax.set_ylabel("Noise")
-
-    plt.savefig(os.path.join(FIG_FOLDER, "noise.pdf"))
+    plt.savefig(os.path.join(FIG_FOLDER, f"{title}.pdf"))
