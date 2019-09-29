@@ -152,7 +152,8 @@ class Hopfield:
 
         for i in np.nditer(self.noise, op_flags=["readwrite"]):
             i += tools.modulated_gaussian_noise(
-                    self.noise_variance, self.noise_modulation)
+                    self.noise_variance, self.noise_modulation) * \
+                 np.amax(self.weights)
 
     def _compute_pattern_similarity(self):
         """
@@ -273,10 +274,8 @@ class Hopfield:
         Also includes the new weights array to the weights history.
         """
 
-        next_weights = (self.combined_target_weights - self.weights)\
+        self.weights = (self.combined_target_weights - self.weights)\
             * self.learning_rate
-
-        self.weights[self.n_iteration] = np.copy(next_weights)
 
         # For plotting
         self.weights_history[self.n_iteration] = np.copy(self.weights)
@@ -311,7 +310,7 @@ class Hopfield:
         self._randomize_init_currents()
 
         # ADD TEACHING METHODS v HERE v
-
+        self.fully_learn()
         # ^ HERE ^
 
         self._compute_all_currents()

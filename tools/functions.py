@@ -82,7 +82,7 @@ def calculate_arrays_mean_difference(array_like_0, array_like_1):
     :return:
     """
 
-    return print(type(np.mean(array_like_0) - np.mean(array_like_1)))
+    return np.mean(array_like_0) - np.mean(array_like_1)
 
 
 # def present_pattern(self, item):
