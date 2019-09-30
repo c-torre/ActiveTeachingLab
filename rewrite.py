@@ -45,7 +45,7 @@ class Hopfield:
         if self.num_neurons == 0:
             self._auto_num_neurons()
             print(f"Set number of neurons automatically to {self.num_neurons}")
-        elif self.num_neurons is int:
+        elif self.num_neurons is int or float:
             pass
         else:
             raise ValueError("num_neurons must be int or 'auto'")
@@ -274,7 +274,7 @@ class Hopfield:
         Also includes the new weights array to the weights history.
         """
 
-        self.weights = (self.combined_target_weights - self.weights)\
+        self.weights += ((self.combined_target_weights) - (self.weights))\
             * self.learning_rate
 
         # For plotting
@@ -330,13 +330,13 @@ def main(force=False):
         np.random.seed(12345)
 
         network = Hopfield(
-            num_iterations=50,
-            num_neurons=0,
-            p=2,
+            num_iterations=10,
+            num_neurons=20,
+            p=1,
             f=0.51,
             first_p=0,
             learning_rate=0.1,
-            forgetting_rate=0.5
+            forgetting_rate=0.9
         )
 
         network.initialize()
@@ -365,22 +365,26 @@ def main(force=False):
         array_like=network.weights,
         title="weights")
 
-    plot.array_history_index(
-        array_history=network.all_target_weights,
-        title="all_target_weights",
-        color_bar=False,
-        contour=False)
+    # plot.array_history_index(
+    #     array_history=network.all_target_weights,
+    #     title="all_target_weights",
+    #     color_bar=False,
+    #     contour=False)
 
-    plot.array(
-               array_like=network.combined_target_weights,
+    plot.multi_line(network.weights_history, title="weights_dot_progress")
+
+    plot.array_element_change(network.weights_history)
+
+    plot.array(array_like=network.combined_target_weights,
                title="combined_target_weights",
                contour=False)
 
-    plot.multi_line(
-        array_like=network.noise,
-        title="noise")
+    plot.multi_line(array_like=network.noise,
+                    title="noise")
 
     plot.currents(network)
+
+    plot.pattern_similarity(network)
 
 
 if __name__ == '__main__':
