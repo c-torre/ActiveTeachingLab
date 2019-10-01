@@ -268,17 +268,19 @@ class Hopfield:
     # Active teaching methods #
     ###########################
 
-    def learn(self):
+    def learn(self, iteration):
         """
         The normalized difference of means calculated at every time step.
         Also includes the new weights array to the weights history.
         """
 
-        self.weights += ((self.combined_target_weights) - (self.weights))\
+        self.weights += (self.combined_target_weights - self.weights)\
             * self.learning_rate
 
         # For plotting
-        self.weights_history[self.n_iteration] = np.copy(self.weights)
+        self.weights_history[iteration] = np.copy(self.weights)
+        print("called")
+        print(self.n_iteration)
 
         self.weights_mean[self.n_iteration] = \
             tools.calculate_arrays_mean_difference(
@@ -290,7 +292,7 @@ class Hopfield:
         print("Learning for all time steps....")
 
         for i in range(self.num_iterations):
-            self.learn()
+            self.learn(i)
 
     #########
     # START #
@@ -330,12 +332,12 @@ def main(force=False):
         np.random.seed(12345)
 
         network = Hopfield(
-            num_iterations=10,
+            num_iterations=100,
             num_neurons=20,
             p=1,
             f=0.51,
             first_p=0,
-            learning_rate=0.1,
+            learning_rate=0.001,
             forgetting_rate=0.9
         )
 
