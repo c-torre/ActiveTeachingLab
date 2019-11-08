@@ -13,8 +13,7 @@ def binarize_item(item, num_neurons):
     question_array = np.array([item])
     bin_item = ((question_array[:, None]
                  & (1 << np.arange(8))) > 0).astype(int)
-    bin_item = np.append(bin_item, np.zeros(num_neurons
-                                            - bin_item.size))
+    bin_item = np.append(bin_item, np.zeros(num_neurons - bin_item.size))
 
     print("Item given as pattern:", bin_item)
 
@@ -68,8 +67,7 @@ def modulated_gaussian_noise(variance, multiplier):
     :return: int, noise_value
     """
 
-    return np.random.normal(loc=0, scale=variance ** 0.5)\
-        * multiplier
+    return np.random.normal(loc=0, scale=variance ** 0.5) * multiplier
 
 
 def calculate_arrays_mean_difference(array_like_0, array_like_1):
@@ -83,7 +81,6 @@ def calculate_arrays_mean_difference(array_like_0, array_like_1):
     """
 
     return np.mean(array_like_0) - np.mean(array_like_1)
-
 
 # def present_pattern(self, item):
 #     kanji = item["kanji"]

@@ -6,8 +6,8 @@ import pickle
 
 import numpy as np
 
-import tools.functions as tools
-import tools.plot as plot
+import utils.old.functions as tools
+import utils.old.plot as plot
 
 
 class Hopfield:
@@ -26,8 +26,8 @@ class Hopfield:
     """
 
     version = 3.0
-    bounds = ('learning_rate', 10**-7, 0.99), \
-             ('forgetting_rate', 10**-7, 0.99),
+    bounds = ('learning_rate', 10 ** -7, 0.99), \
+             ('forgetting_rate', 10 ** -7, 0.99),
 
     def __init__(self, num_iterations, num_neurons=0, p=16, f=0.1,
                  noise_variance=65, noise_modulation=0.05, first_p=0,
@@ -128,7 +128,7 @@ class Hopfield:
                 for j in range(self.num_neurons):
                     if j >= i:
                         break
-                    self.all_target_weights[p, i, j] +=\
+                    self.all_target_weights[p, i, j] += \
                         (2 * self.patterns[p, i] - 1) \
                         * (2 * self.patterns[p, j] - 1)
 
@@ -143,7 +143,7 @@ class Hopfield:
         self.combined_target_weights = np.sum(self.all_target_weights, 0)
 
         assert np.amax(self.combined_target_weights) == self.p and \
-            np.amin(self.combined_target_weights) == -self.p
+               np.amin(self.combined_target_weights) == -self.p
 
     def _compute_noise(self):
         """Computes the Gaussian noise value for every neuron and iteration"""
@@ -152,7 +152,7 @@ class Hopfield:
 
         for i in np.nditer(self.noise, op_flags=["readwrite"]):
             i += tools.modulated_gaussian_noise(
-                    self.noise_variance, self.noise_modulation) * \
+                self.noise_variance, self.noise_modulation) * \
                  np.amax(self.weights)
 
     def _compute_pattern_similarity(self):
@@ -274,8 +274,8 @@ class Hopfield:
         Also includes the new weights array to the weights history.
         """
 
-        self.weights += (self.combined_target_weights - self.weights)\
-            * self.learning_rate
+        self.weights += (self.combined_target_weights - self.weights) \
+                        * self.learning_rate
 
         # For plotting
         self.weights_history[iteration] = np.copy(self.weights)
