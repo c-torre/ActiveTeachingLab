@@ -29,7 +29,7 @@ def randomize_activations():
     initial = np.vstack([utils.tools.heaviside_activation(val) for val in
                          components.noise.noise[:, 0]])
     rest = np.zeros((num_neurons, time_steps - 1))
-    return np.hstack((initial, rest))
+    return np.hstack((initial, rest)).astype(int)
 
 
 random_activations = randomize_activations()

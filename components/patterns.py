@@ -14,6 +14,7 @@ np.random.seed(global_params.seed)
 
 
 def compute_patterns():
+    """ Gets a binary patterns from distribution """
     return np.random.choice([0, 1], p=[1 - sparsity, sparsity],
                             size=(num_patterns, num_neurons))
 

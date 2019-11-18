@@ -1,3 +1,7 @@
+"""
+Global parameters
+"""
+
 seed = 123
 
 time_steps = 100

@@ -1,5 +1,5 @@
 """
-
+Weights calculations
 """
 
 import numpy as np
@@ -32,7 +32,7 @@ def compute_all_target_weights():
                     * (2 * pattern[j] - 1)
 
         w_matrix += w_matrix.T
-        t_weights.append(w_matrix)
+        t_weights.append(np.array(w_matrix))
 
     return t_weights
 
@@ -45,32 +45,27 @@ def combine_target_weights(arrays):
     Calculates the combined target weights by adding all the target weights
     """
 
-    # print("Adding all target weights together...")
     t_weights = []
 
     for i, array in enumerate(arrays):
         if i == 0:
-            result = array.copy()
+            result = np.copy(array)
         else:
-            result = array.copy() + arrays[i-1].copy()
+            result = np.add(np.copy(array), t_weights[-1])
 
         t_weights.append(result)
-
-    # assert np.amax(t_weights) == num_patterns and np.amin(
-    #     t_weights) == -num_patterns
-    # TODO idx 2 not correct values, correct this first
 
     return t_weights
 
 
-# target_weights = combine_target_weights(target_weights)
+target_weights = combine_target_weights(target_weights)
 
 
-# def main():
-#     compute_all_target_weights()
-#     combine_target_weights()
-#
-#
-# if __name__ == '__main__':
-#     main()
-#
+def main():
+    """ Main """
+    weights = compute_all_target_weights()
+    combine_target_weights(weights)
+
+
+if __name__ == '__main__':
+    main()
