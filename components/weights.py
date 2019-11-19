@@ -9,16 +9,19 @@ import global_params
 
 num_neurons = global_params.num_neurons
 num_patterns = components.patterns.num_patterns
-
+time_steps = global_params.time_steps
 patterns = components.patterns.patterns
 
 
-def compute_all_target_weights():
-    """
-    Computes the target weights array for each of the patterns.
-    """
 
-    print("Computing target weights for all patterns...")
+
+
+
+
+def compute_all_target_weights():
+    """ Computes the target weights array for each of the patterns """
+
+    # print("Computing target weights for all patterns...")
     t_weights = []
 
     for pattern in patterns:
@@ -37,13 +40,14 @@ def compute_all_target_weights():
     return t_weights
 
 
-target_weights = compute_all_target_weights()
+# target_weights = compute_all_target_weights()
 
 
-def combine_target_weights(arrays):
+def combine_target_weights():
     """
     Calculates the combined target weights by adding all the target weights
     """
+    arrays = compute_all_target_weights()
 
     t_weights = []
 
@@ -58,7 +62,7 @@ def combine_target_weights(arrays):
     return t_weights
 
 
-target_weights = combine_target_weights(target_weights)
+# target_weights = combine_target_weights(target_weights)
 
 
 def main():

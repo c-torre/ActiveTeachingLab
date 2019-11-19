@@ -8,20 +8,50 @@ import components.noise
 import global_params
 import utils.tools
 
+np.random.seed(global_params.seed)
+
 time_steps = global_params.time_steps
 num_neurons = global_params.num_neurons
 sparsity = global_params.sparsity
 
 
-def randomize_weights():
-    weights = np.random.choice([-1, 0, 1], size=(num_neurons, num_neurons))
+def randomize_weights(fake_num_pattern):
+    """
+    Makes a symmetrical, square matrix, with all 0 in te main diagonal, and
+    all elements are chosen randomly to serve as control.
+    E.g. possible random values for different combinations of patterns:
+        1 pattern: [-1, 0, 1]
+        2 patterns: [-2, -1, 0, 1, 2]
+        ...
+
+    :param fake_num_pattern: int > 0
+        Number of patterns the would theoretically make the weights
+    :return: array_like
+        Weight matrix
+    """
+
+    assert fake_num_pattern > 0
+
+    weights = np.zeros((num_neurons, num_neurons))
+    choices = np.arange(-fake_num_pattern, fake_num_pattern + 1, 1)
+
     for i in range(num_neurons):
-        weights[i, i] = 0
+        for j in range(num_neurons):
+            if j >= i:
+                break
+            weights[i, j] = np.random.choice(choices)
+    weights += weights.T
 
     return weights
 
 
-random_weights = randomize_weights()
+def initialize_weights(fake_num_patterns):
+    weights = np.zeros((time_steps, num_neurons, num_neurons))
+    weights[0] += randomize_weights(fake_num_patterns)
+    return weights
+
+
+# random_weights = randomize_weights(1)
 
 
 def randomize_activations():
