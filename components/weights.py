@@ -13,11 +13,6 @@ time_steps = global_params.time_steps
 patterns = components.patterns.patterns
 
 
-
-
-
-
-
 def compute_all_target_weights():
     """ Computes the target weights array for each of the patterns """
 
@@ -59,7 +54,7 @@ def combine_target_weights():
 
         t_weights.append(result)
 
-    return t_weights
+    return np.array(t_weights)
 
 
 # target_weights = combine_target_weights(target_weights)

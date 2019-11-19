@@ -24,11 +24,12 @@ def forget_weights(weights, forgetting_rate):
 
     assert 0 <= forgetting_rate <= 1
 
+    target_weights = np.zeros((num_neurons, num_neurons))
     factor = np.amax(weights)
 
     for time_step in range(1, time_steps):
-        target_weights = utils.noise.weights_noise() * factor
+        noise = utils.noise.weights_noise() * factor
         weights[time_step] += np.subtract(target_weights, weights[
-            time_step - 1]) * forgetting_rate + weights[time_step - 1]
+            time_step - 1]) * forgetting_rate + weights[time_step - 1] + noise
 
     return weights
